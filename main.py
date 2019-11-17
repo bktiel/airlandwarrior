@@ -1,4 +1,4 @@
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.ShowBase import ShowBase, CollisionHandlerPusher, Point3
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
 from direct.actor.Actor import Actor
@@ -6,7 +6,8 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import PandaNode, NodePath, Camera, TextNode
 from direct.interval.IntervalGlobal import Sequence
 #all collision stuff
-from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, CollisionRay, CollideMask
+from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue,\
+    CollisionRay, CollideMask, CollisionSphere,CollisionHandlerPusher
 
 
 class mainGame(ShowBase):
@@ -27,8 +28,9 @@ class mainGame(ShowBase):
         #handle collisions
         #collision traversal 'traverses' instances of collides
         self.cTrav=CollisionTraverser()
+        self.pusher=CollisionHandlerPusher()
 
-        charles= entity("panda", self, (0, 40, 300))
+        charles= entity("panda", self, (0, 40, 30))
         charles.gravity=True
 
 
@@ -69,25 +71,22 @@ class entity():
 
         #COLLISION PROPERTIES
         #create collision ray that is height of model pointing down (will detect ground collisions)
-        self.groundRay = CollisionRay()
-        self.groundRay.setOrigin(0, 0, self.height)
-        self.groundRay.setDirection(0, 0, -1)
-        #create panda3d collision node that will contain collision ray
-        self.groundCol = CollisionNode('actorRay')
-        self.groundCol.addSolid(self.groundRay)
+        self.mainCol = CollisionNode('actorCollision'+str(id(self)))
+        #create collision sphere as solid for this collision node
+        self.mainCol.addSolid(CollisionSphere(0, 0, self.height/2, self.height/2))
         #specify valid collisions for collision node
-        self.groundCol.setFromCollideMask(CollideMask.bit(0))
-        self.groundCol.setIntoCollideMask(CollideMask.allOff())
+        self.mainCol.setFromCollideMask(CollideMask.bit(0))
+        self.mainCol.setIntoCollideMask(CollideMask.allOff())
         #attach collision node to actor
-        self.groundColNode = self.actor.attachNewNode(self.groundCol)
-        #create container for all valid collisions
-        self.groundHandler = CollisionHandlerQueue()
-        #finally, attach the ground collision node and a place to store collisions to the traverser
-        instance.cTrav.addCollider(self.groundColNode, self.groundHandler)
-        self.groundColNode.show()
-        instance.cTrav.showCollisions(self.renderer)
-        #add collision task to global task manager for this entity
-        taskMgr.add(self.collide, "collideTask")
+        self.cNode = self.actor.attachNewNode(self.mainCol)
+        #show
+        self.cNode.show()
+        #make instance collision traverser aware of this collision node, tell it how to handle (with pusher)
+        instance.cTrav.addCollider(self.cNode, instance.pusher)
+        #add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
+        instance.pusher.addCollider(self.cNode, self.actor, instance.drive.node())
+
+        self.actor.posInterval(5, Point3(0,40,-50), startPos=self.actor.getPos(), fluid=1).loop()
 
     #task: collides
     #None -> None
