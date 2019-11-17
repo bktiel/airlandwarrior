@@ -19,11 +19,10 @@ class mainGame(ShowBase):
     def __init__(self):
         '''
         class construct
-        :param self:
-        :return:
         '''
         #initialize
         ShowBase.__init__(self)
+
 
         #handle collisions
         #collision traversal 'traverses' instances of collides
@@ -33,13 +32,11 @@ class mainGame(ShowBase):
         #load environment
         self.makeEnviron("example")
 
-        charles= entity("panda", self, (0, 40, -20))
+        charles= entity("panda", self, (0, 60, -20))
 
     def makeEnviron(self,envModel):
         '''
         creates environment of specified name and parents to renderer
-        :param envModel:
-        :return:
         '''
         self.environment=self.loader.loadModel("models/"+envModel)
         self.environment.reparentTo(self.render)
@@ -51,7 +48,7 @@ class entity():
     Contains methods for movement, collision, model loading
     '''
     #NodePath model, ShowBase caller, tuple Pos -> class construction
-    def __init__(self, model, instance, pos):
+    def __init__(self, model: str, instance: ShowBase, pos: tuple) -> None:
         '''
         constructor for entity. attaches model to calling instance renderer
         '''
@@ -84,13 +81,37 @@ class entity():
         instance.cTrav.addCollider(self.cNode, instance.pusher)
         #add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
         instance.pusher.addCollider(self.cNode, self.actor, instance.drive.node())
+
+        #if no initial collision, enforce gravity until collision
     def destroy(self):
         '''
         Destroy an object cleanly from instance
-        :return:
         '''
         self.actor.delete()
 
+class player(entity):
+    '''
+    player is a playable entity.
+    it has movement methods to manipulate actor based on key input
+    it has a camera task to keep camera in third person perspective
+    '''
+    def __init__(self, model, instance, pos):
+        '''
+        class constructor
+        calls parent constructor to set up model, renderer, position
+        initializes camera to focus on player character
+        sets up key mappings w: forward, s: back, a: left, d: right
+        sets mouse mode to relative
+        '''
+        entity.__init__(self, model, instance, pos)
+        #extra player specific stuff
+
+    def move(self,task):
+        '''
+        Called every frame - if w,a,s,d pressed, move self.actor accordingly
+        If mouse location different and not in a menu, rotate actor by delta radians
+        Adjust camera to keep up with move
+        '''
 class vehicle(entity):
     '''
     Base class for vehicles
