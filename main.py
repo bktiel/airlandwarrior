@@ -1,4 +1,6 @@
-from direct.showbase.ShowBase import ShowBase, CollisionHandlerPusher, Point3
+from random import randint
+
+from direct.showbase.ShowBase import ShowBase, CollisionHandlerPusher, Point3, WindowProperties, Vec3F
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
 from direct.actor.Actor import Actor
@@ -8,6 +10,7 @@ from direct.interval.IntervalGlobal import Sequence
 # all collision stuff
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
+from math import sin, cos
 
 
 class mainGame(ShowBase):
@@ -34,7 +37,10 @@ class mainGame(ShowBase):
         # load environment
         self.makeEnviron("example")
 
-        charles = entity("panda", self, (0, 60, -20))
+        #set up player and camera
+        #set mouse mode to relative
+        self.disableMouse()
+        self.setMouseMode(1)
         mike = player("panda", self, (0, 90, -20))
 
     def makeEnviron(self, envModel):
@@ -76,6 +82,29 @@ class mainGame(ShowBase):
         '''
         self.keyMap[key] = value
 
+    #procedure mouseMode
+    def setMouseMode(self, mode):
+        '''
+        switches mouse mode between absolute, relative, and confined
+        absolute allows mouse freedom, relative is fixed inside, confined is confined inside window
+        '''
+        #new instance of windowproperties
+        props = WindowProperties()
+        # get appropriate mousemode based on mode and apply to properties
+        if mode is 0:
+            props.setMouseMode(WindowProperties.M_absolute)
+        elif mode is 1:
+            #relative
+            props.setMouseMode(WindowProperties.M_relative)
+            self.disableMouse()
+            props.setCursorHidden(True)
+        elif mode is 2:
+            props.setMouseMode(WindowProperties.M_confined)
+        #set window mouse mode
+        self.win.requestProperties(props)
+        #record as property
+        self.mouseMode=mode
+
 
 class entity():
     '''
@@ -102,6 +131,11 @@ class entity():
         # make sure all numbers are positive for best (any) results
         self.bounds = [abs(num) for num in (minimum - maximum)]
         self.width, self.length, self.height = self.bounds[0], self.bounds[1], self.bounds[2]
+
+        #create node at front of actor to track rotation
+        #self.front = NodePath(PandaNode("front"))
+        #self.front.reparentTo(self.actor)
+        #self.front.setY(self.actor.getY()+2)
 
         # COLLISION PROPERTIES
         # create collision ray that is height of model pointing down (will detect ground collisions)
@@ -163,13 +197,12 @@ class player(entity):
         '''
         if state:
             # store scene camera as property of this entity (since scene camera should be on the object)
-            self.base.disableMouse()
             self.camera = self.base.camera
-            print("e")
             self.keyMap=self.base.keyMap
+            self.camera.reparentTo(self.actor)
             # set camera to be 10 behind and 15% above
-            self.camera.setPos(self.actor.getX(), self.actor.getY() + 30, self.actor.getZ()+self.height)
-            self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height/2)
+            self.camera.setPos(self.actor.getX(), self.actor.getY() + 50, self.actor.getZ()+self.height)
+            self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
 
     def move(self, task):
         '''
@@ -180,8 +213,8 @@ class player(entity):
         # get time since last frame (multiply by distance to get actual distance to displace
         dt = globalClock.getDt()
 
-        #rotate model by mouse transform
-
+        #update camera
+        self.updateCamera()
 
         # check if there is any movement
         if (True in self.keyMap.values()):
@@ -189,25 +222,83 @@ class player(entity):
             # for every direction that is true, move object that way
             # do the same with the camera
             if self.keyMap["forward"]:
-                self.actor.setY(self.actor.getY() - 100 * dt)
+                self.actor.setY(self.actor, - 100 * dt)
                 # camera too..
                 #self.camera.setY(self.camera.getY() - 25 * dt)
             if self.keyMap["back"]:
-                self.actor.setY(self.actor.getY() + 100 * dt)
+                self.actor.setY(self.actor, + 100 * dt)
                 #self.camera.setY(self.camera.getY() + 25 * dt)
             if self.keyMap["left"]:
-                self.actor.setX(self.actor.getX() + 100 * dt)
+                self.actor.setX(self.actor, + 100 * dt)
                 #self.camera.setH(self.camera.getH() + 200 * dt)
             if self.keyMap["right"]:
-                self.actor.setX(self.actor.getX() - 100 * dt)
+                self.actor.setX(self.actor, - 100 * dt)
                 #self.camera.setH(self.camera.getH() - 200 * dt)
 
             # lastly if attempting move simulate gravity as well
             self.actor.setZ(self.actor.getZ() - 50 * dt)
-            #self.camera.setZ(self.camera.getZ() - 10 * dt)
-            #update camera
-            self.camera.setPos(self.actor.getX(), self.actor.getY() + 30, self.actor.getZ()+self.height)
         return task.cont
+
+    def updateCamera(self):
+        '''
+        update camera for player depending on mouse transform
+        '''
+        # rotate model by mouse transform
+        # first retrieve mouse watcher from base application
+        mw = self.base.mouseWatcherNode
+
+        # make sure actually have mouse control
+        hasMouse = mw.hasMouse()
+        if hasMouse:
+            #if mouse is inside, get x and y
+            x, y = mw.getMouseX(), mw.getMouseY()
+            if self.lastMouseX is not None:
+                # get difference from last mouse to now
+                if self.base.mouseMode is 1:
+                    # if in mouseMode 1 (relative), position of cursor resets to center
+                    # so what's reported by getMouseX,Y is already the delta from center
+                    dx, dy = x, y
+                else:
+                    dx, dy = x - self.lastMouseX, y - self.lastMouseY
+            else:
+                # no data to compare with yet
+                dx, dy = 0, 0
+            self.lastMouseX, self.lastMouseY = x, y
+        else:
+            x, y, dx, dy = 0, 0, 0, 0
+
+        # if in relative mode reset mouse to center
+        if self.base.mouseMode is 1:
+            self.base.win.movePointer(0,
+                                      int(self.base.win.getProperties().getXSize() / 2),
+                                      int(self.base.win.getProperties().getYSize() / 2))
+            #reset lastMouse to 0,0 since everything will be relative from center
+            self.lastMouseX, self.lastMouseY = 0, 0
+
+        #rotate model by delta X
+        self.actor.setH(self.actor.getH()-dx*60)
+        #update camera to keep up
+        #test - vertical shaking while moving
+        self.camera.setPos(-2, 30, self.height*.75)
+        self.camera.setPos(self.camera.getPos()+(0,0,randint(-3,2)))
+        #project vector from model and put camera there
+        #camOffset=(0, -30,self.height)
+        #rotate vector
+        #first need to get angle (getH is cumulative degrees, not ideal for rotation)
+        #playerAngle = (360-self.actor.getH())%360
+        #now rotate
+        #self.camera.setPos(player.getPos()+rotateVector(camOffset,playerAngle))
+        #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ() + self.height / 2)
+
+#function: rotateVector
+def rotateVector(vector,angle):
+    '''
+
+    '''
+    #https://stackoverflow.com/questions/14607640/rotating-a-vector-in-3d-space
+    newX=vector[0]*cos(angle)-vector[1]*sin(angle)
+    newY=vector[0]*sin(angle)-vector[1]*cos(angle)
+    return newX,newY,vector[2]
 
 class vehicle(entity):
     '''
