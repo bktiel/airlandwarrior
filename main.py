@@ -22,17 +22,18 @@ class mainGame(ShowBase):
         :param self:
         :return:
         '''
+        #initialize
         ShowBase.__init__(self)
-        self.makeEnviron("example")
 
         #handle collisions
         #collision traversal 'traverses' instances of collides
         self.cTrav=CollisionTraverser()
         self.pusher=CollisionHandlerPusher()
 
-        charles= entity("panda", self, (0, 40, 30))
-        charles.gravity=True
+        #load environment
+        self.makeEnviron("example")
 
+        charles= entity("panda", self, (0, 40, -20))
 
     def makeEnviron(self,envModel):
         '''
@@ -42,7 +43,7 @@ class mainGame(ShowBase):
         '''
         self.environment=self.loader.loadModel("models/"+envModel)
         self.environment.reparentTo(self.render)
-        self.environment.setPos(0, 0, -20)
+        self.environment.setPos(0, 0, -10)
 
 class entity():
     '''
@@ -54,8 +55,6 @@ class entity():
         '''
         constructor for entity. attaches model to calling instance renderer
         '''
-
-        self.gravity=False
         #creates actor object using constructor and parents to passed renderer
         self.actor = Actor(model)
         self.renderer = instance.render
@@ -85,34 +84,12 @@ class entity():
         instance.cTrav.addCollider(self.cNode, instance.pusher)
         #add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
         instance.pusher.addCollider(self.cNode, self.actor, instance.drive.node())
-
-        self.actor.posInterval(5, Point3(0,40,-50), startPos=self.actor.getPos(), fluid=1).loop()
-
-    #task: collides
-    #None -> None
-    def collide(self,task):
+    def destroy(self):
         '''
-        Tasks are procedures that run every frame once they are called
-        collide() checks for any collisions and adjusts actor as applicable
+        Destroy an object cleanly from instance
+        :return:
         '''
-        #democode for gravity
-        dt = globalClock.getDt()
-        if self.gravity is True:
-            self.actor.setZ(self.actor.getZ()-20*dt)
-        #create list from all collisions detected by collisions container
-        entries = list(self.groundHandler.getEntries())
-        #sort entries by the Z value (height) of their collision
-        entries.sort(key=lambda x: x.getSurfacePoint(self.renderer).getZ())
-        #if actor is inside terrain, adjust Z so it is above the terrain
-        print(entries)
-        if len(entries) > 0 and entries[0].getIntoNode().getName() == "terrain":
-            #get Z of the collision detected with terrain, set Z of actor above it
-            #this way actor always stays above terrain
-            self.actor.setZ(entries[0].getSurfacePoint(self.renderer).getZ())
-        else:
-            self.actor.setPos(self.actor.getPos())
-
-        return task.cont
+        self.actor.delete()
 
 class vehicle(entity):
     '''
