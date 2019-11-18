@@ -1,6 +1,6 @@
 from random import randint, randrange, uniform
 
-from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F
+from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
 from direct.actor.Actor import Actor
@@ -20,14 +20,16 @@ class mainGame(ShowBase):
     mainGame class is the actual instance of the panda application, inherits from ShowBase
     it contains functions and methods to control the actual game
     '''
+    #procedure class constructor
     def __init__(self):
         '''
-        class construct
+        class constructor
+        Creates environment, player objects
         '''
         # initialize
         #ShowBase.__init__(self)
         # set keybinds
-        self.setKeybinds()
+        setKeybinds()
 
         # handle collisions
         # collision traversal 'traverses' instances of collides
@@ -37,76 +39,80 @@ class mainGame(ShowBase):
         # self.render references base.render
         self.render=base.render
 
+        base.cleanup=[]
+
         # load environment
         self.makeEnviron("example")
 
         #set up player and camera
         #set mouse mode to relative
         base.disableMouse()
-        self.setMouseMode(1)
-        mike = player("panda", base, (0, 90, -20))
+        setMouseMode(1)
+        mike = player("models/m1x", base, (0, 150, -20))
 
+    #procedure makeEnviron
     def makeEnviron(self, envModel):
         '''
         creates environment of specified name and parents to renderer
         '''
+        #load environment model and add to renderer
         self.environment = base.loader.loadModel("models/" + envModel)
         self.environment.reparentTo(self.render)
         self.environment.setPos(0, 0, -10)
+        #add to cleanup list
+        base.cleanup.append(self.environment)
 
-    # procedure setKeybinds
-    def setKeybinds(self):
-        '''
-        Inform instance what keypresses to accept and what to do
-        Creates dict property containing movement patterns and associates WASD with each
-        self.keyMap dict will be used by player class to determine object transforms
-        '''
-        # set up dictionary that stores which movements to be making - default to false
-        base.keyMap = {
-            "forward": 0, "left": 0, "back": 0, "right": 0}
-        # set up instance to accept keypresses and adjust booleans in keyMap
-        # for instance, if pressing D, keyMap["right"] is true - we should be attempting move right with player object
-        base.accept("w", self.setKey, ["forward", True])
-        base.accept("a", self.setKey, ["left", True])
-        base.accept("s", self.setKey, ["back", True])
-        base.accept("d", self.setKey, ["right", True])
-        # if key is lifted set dict movement entries to false
-        base.accept("w-up", self.setKey, ["forward", False])
-        base.accept("a-up", self.setKey, ["left", False])
-        base.accept("s-up", self.setKey, ["back", False])
-        base.accept("d-up", self.setKey, ["right", False])
+        ambientLight = AmbientLight("ambientLight")
+        ambientLight.setColor((.3, .3, .3, 1))
+        directionalLight = DirectionalLight("directionalLight")
+        directionalLight.setDirection((-5, -5, -5))
+        directionalLight.setColor((1, 1, 1, 1))
+        directionalLight.setSpecularColor((1, 1, 1, 1))
+        base.render.setLight(base.render.attachNewNode(ambientLight))
+        base.render.setLight(base.render.attachNewNode(directionalLight))
 
-    # procedure setKey
-    def setKey(self, key, value):
+    #procedure spawnBases
+    def spawnBases(self):
         '''
-        Instance contains a dictionary that will store what actions to store with what keys
-        This function is necessary as it is the action performed on self.accept in self.setKeyBinds
-        :return:
+        Create bases/outposts across the map based on environment mesh nodes
+        Store in self.bases list
         '''
-        base.keyMap[key] = value
+        pass
 
-    #procedure mouseMode
-    def setMouseMode(self, mode):
+    #procedure spawnEnemies
+    def spawnEnemies(self):
         '''
-        switches mouse mode between absolute, relative, and confined
-        absolute allows mouse freedom, relative is fixed inside, confined is confined inside window
+        Every few ticks generate new enemies from hostile bases
         '''
-        #new instance of windowproperties
-        props = WindowProperties()
-        # get appropriate mousemode based on mode and apply to properties
-        if mode is 0:
-            props.setMouseMode(WindowProperties.M_absolute)
-        elif mode is 1:
-            #relative
-            props.setMouseMode(WindowProperties.M_relative)
-            base.disableMouse()
-            props.setCursorHidden(True)
-        elif mode is 2:
-            props.setMouseMode(WindowProperties.M_confined)
-        #set window mouse mode
-        base.win.requestProperties(props)
-        #record as property
-        base.mouseMode=mode
+        pass
+    #procedure captureBase
+    def captureBase(self):
+        '''
+        Function to be called when player reaches center of base and attempts side conversion
+        If successful base becomes player controlled and reinforceable
+        '''
+        pass
+
+    #procedure spawnFriendly
+    def spawnFriendly(self, friendly, location):
+        '''
+        Spawn friendly unit of type friendly (rifle, runner, tank, helo, turret)
+        '''
+        pass
+
+
+    #procedure class deconstructor
+    def __del__(self):
+        '''
+        Cleanly deletes all objects created by this scene
+        '''
+        #delete all items in cleanup
+        for i in range(len(base.cleanup)):
+            garbage=base.cleanup.pop()
+            del garbage
+
+
+
 
 
 #app = mainGame()

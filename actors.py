@@ -8,6 +8,9 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
 
+from weapons import *
+
+#presume use of global showbase object
 global base
 class entity():
     '''
@@ -15,10 +18,12 @@ class entity():
     Contains methods for movement, collision, model loading
     '''
 
+    #procedure class constructor
     # NodePath model, ShowBase caller, tuple Pos -> class construction
     def __init__(self, model: str, base: ShowBase, pos: tuple) -> None:
         '''
         constructor for entity. attaches model to calling instance renderer
+        also stores size definitions and creates basic collision object
         '''
         #reference base for later
         self.base = base
@@ -57,14 +62,23 @@ class entity():
         # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
         base.pusher.addCollider(self.cNode, self.actor, base.drive.node())
 
+        #add to cleanup for deletion later
+        base.cleanup.append(self)
+
         # if no initial collision, enforce gravity until collision
 
+    #procedure class deconstructor
     def __del__(self):
         '''
         Class destructor
         Destroy an object cleanly from instance
         '''
-        # self.actor.delete()
+        #destroy actor
+        self.actor.hide()
+        self.actor.remove_node()
+        self.actor.delete()
+        #remove collision node from global collider
+        base.cTrav.removeCollider(self.cNode)
 
 
 class player(entity):
@@ -74,6 +88,8 @@ class player(entity):
     it has a camera task to keep camera in third person perspective
     '''
 
+    # procedure class constructor
+    # NodePath model, ShowBase caller, tuple Pos -> class construction
     def __init__(self, model, base, pos):
         '''
         class constructor
@@ -90,9 +106,14 @@ class player(entity):
         # camera init
         self.setPlayer()
 
+        # initial loadout
+        self.weapons=[M2(),TOWPod()]
+        # store player's selected weapon
+        self.selectedWeapon=self.weapons[0]
         taskMgr.add(self.move,"playerMoveTask")
 
     # procedure setPlayer
+    # bool -> player assignment/not
     def setPlayer(self,state=True):
         '''
         method called to set an entity as the player
@@ -107,6 +128,7 @@ class player(entity):
             self.camera.setPos(self.actor.getX(), self.actor.getY() + 50, self.actor.getZ()+self.height)
             self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
 
+    #task move
     def move(self, task):
         '''
         Called every frame - if w,a,s,d pressed, move self.actor accordingly
@@ -145,6 +167,8 @@ class player(entity):
             self.isMobile=False
         return task.cont
 
+    #procedure updateCamera
+    # none -> none
     def updateCamera(self):
         '''
         update camera for player depending on mouse transform
@@ -185,7 +209,7 @@ class player(entity):
         self.actor.setH(self.actor.getH()-dx*60)
         #update camera to keep up
         #test - vertical shaking while moving
-        self.camera.setPos(-2, 30, self.height*.75)
+        self.camera.setPos(-2, 30, self.height*1.05)
         #project vector from model and put camera there
         #camOffset=(0, -30,self.height)
         #rotate vector
@@ -194,6 +218,20 @@ class player(entity):
         #now rotate
         #self.camera.setPos(player.getPos()+rotateVector(camOffset,playerAngle))
         #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ() + self.height / 2)
+
+    # procedure player.shoot
+    def shoot(self):
+        '''
+        Fire primary weapon
+        '''
+        pass
+
+
+
+    #class deconstructor
+    def __del__(self):
+        entity.__del__(self)
+        self.actor.removeEpstein()
 
 
 class vehicle(entity):
