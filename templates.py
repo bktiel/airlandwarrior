@@ -1,14 +1,11 @@
 #definitions for actors
-from direct.showbase.ShowBase import ShowBase, CollisionHandlerPusher, Point3, WindowProperties, Vec3F
+from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
-from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.task.TaskManagerGlobal import taskMgr
 # all collision stuff
-from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
-    CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
+from panda3d.core import CollisionNode, CollideMask, CollisionSphere
 
-from weapons import *
 
 #presume use of global showbase object
 global base
@@ -17,7 +14,6 @@ class entity():
     Base class for any characters
     Contains methods for movement, collision, model loading
     '''
-
     #procedure class constructor
     # NodePath model, ShowBase caller, tuple Pos -> class construction
     def __init__(self, model: str, base: ShowBase, pos: tuple) -> None:
@@ -25,8 +21,15 @@ class entity():
         constructor for entity. attaches model to calling instance renderer
         also stores size definitions and creates basic collision object
         '''
+        DEFAULT_HEALTH=50
+
+
         #reference base for later
         self.base = base
+
+        # set health
+        self.health=DEFAULT_HEALTH
+
         # creates actor object using constructor and parents to passed renderer
         self.actor = Actor(model)
         self.renderer = base.render
@@ -65,7 +68,18 @@ class entity():
         #add to cleanup for deletion later
         base.cleanup.append(self)
 
-        # if no initial collision, enforce gravity until collision
+        # TODO if no initial collision, enforce gravity until collision
+
+    #procedure add Damage
+    #float dmg -> decrement self.health
+    def addDamage(self, dmg):
+        '''
+        Adds a specified amount to this entity
+        Can be negative or positive
+        If self.health < 0 call delete self
+        '''
+        # TODO make pretty death
+        del self
 
     #procedure class deconstructor
     def __del__(self):
@@ -107,9 +121,9 @@ class player(entity):
         self.setPlayer()
 
         # initial loadout
-        self.weapons=[M2(),TOWPod()]
+        self.weapons=[]
         # store player's selected weapon
-        self.selectedWeapon=self.weapons[0]
+        self.selectedWeapon=None
         taskMgr.add(self.move,"playerMoveTask")
 
     # procedure setPlayer
@@ -240,3 +254,11 @@ class vehicle(entity):
     Bipedal characters can inherit directly from entity but vehicle handling demands special attention
     '''
     pass
+
+class weapon():
+    '''
+    weapon class is any weapon used by any character/vehicle in world
+    class contains model, projectile, range, noise, and mag size
+    '''
+    def __init__(self):
+        pass

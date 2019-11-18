@@ -11,7 +11,8 @@ from direct.interval.IntervalGlobal import Sequence
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerPusher, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
 #custom classes
-from actors import player
+from templates import player
+from definitions.weapons import *
 from helper import *
 
 global base
@@ -39,16 +40,28 @@ class mainGame(ShowBase):
         # self.render references base.render
         self.render=base.render
 
+        #cleanup is list that saves items to destroy on mission end
         base.cleanup=[]
 
         # load environment
         self.makeEnviron("example")
 
+        # load GUI
+        self.makeGUI()
+
         #set up player and camera
         #set mouse mode to relative
         base.disableMouse()
         setMouseMode(1)
-        mike = player("models/m1x", base, (0, 150, -20))
+        self.player = player("models/m1x", base, (0, 200, -60))
+
+        #load gameplay logic
+        self.playerScore=0
+
+        self.spawnBases()
+        self.spawnEnemies()
+
+
 
     #procedure makeEnviron
     def makeEnviron(self, envModel):
@@ -70,6 +83,15 @@ class mainGame(ShowBase):
         directionalLight.setSpecularColor((1, 1, 1, 1))
         base.render.setLight(base.render.attachNewNode(ambientLight))
         base.render.setLight(base.render.attachNewNode(directionalLight))
+
+    #procedure make GUI
+    def makeGUI(self):
+        '''
+        Creates GUI controls and renders on screen
+        Health, targeting reticle, ammunition, weapon display, score
+        '''
+        # TODO GUI logic for player
+        pass
 
     #procedure spawnBases
     def spawnBases(self):
@@ -110,9 +132,6 @@ class mainGame(ShowBase):
         for i in range(len(base.cleanup)):
             garbage=base.cleanup.pop()
             del garbage
-
-
-
 
 
 #app = mainGame()

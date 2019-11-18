@@ -1,10 +1,4 @@
-class weapon():
-    '''
-    weapon class is any weapon used by any character/vehicle in world
-    class contains model, projectile, range, noise, and mag size
-    '''
-    def __init__(self):
-        pass
+from templates import weapon
 
 class M2(weapon):
     '''
