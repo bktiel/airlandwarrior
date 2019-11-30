@@ -1,12 +1,8 @@
 from random import randint, randrange, uniform
 
+from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
+from direct.gui.DirectFrame import DirectFrame
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight
-from direct.showbase.ShowBaseGlobal import globalClock
-from direct.task import Task
-from direct.actor.Actor import Actor
-from direct.task.TaskManagerGlobal import taskMgr
-from panda3d.core import PandaNode, NodePath, Camera, TextNode
-from direct.interval.IntervalGlobal import Sequence
 # all collision stuff
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerPusher, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
@@ -53,7 +49,8 @@ class mainGame(ShowBase):
         #set mouse mode to relative
         base.disableMouse()
         setMouseMode(1)
-        self.player = player("models/m1x", base, (0, 200, -60))
+
+        self.player = player("models/m13", base, (0, 200, -60))
 
         #load gameplay logic
         self.playerScore=0
@@ -89,9 +86,16 @@ class mainGame(ShowBase):
         '''
         Creates GUI controls and renders on screen
         Health, targeting reticle, ammunition, weapon display, score
+        store results in self.playerGUI
         '''
         # TODO GUI logic for player
-        pass
+        self.playerGUI=DirectFrame(
+            frameSize=(base.a2dLeft, base.a2dRight, base.a2dBottom, base.a2dTop),
+            frameColor=(0,0,0,0)    #make completely transparent
+        )
+        reticle=OnscreenImage(image='images/reticle.png',scale=(0.5,1,.25))
+        reticle.setTransparency(TransparencyAttrib.MAlpha)
+        reticle.reparentTo(self.playerGUI)
 
     #procedure spawnBases
     def spawnBases(self):
@@ -128,6 +132,7 @@ class mainGame(ShowBase):
         '''
         Cleanly deletes all objects created by this scene
         '''
+        self.render.getChildren().detach()
         #delete all items in cleanup
         for i in range(len(base.cleanup)):
             garbage=base.cleanup.pop()

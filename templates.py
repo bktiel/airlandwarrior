@@ -79,7 +79,9 @@ class entity():
         If self.health < 0 call delete self
         '''
         # TODO make pretty death
-        del self
+        self.health+=dmg
+        if self.health <= 0:
+            del self
 
     #procedure class deconstructor
     def __del__(self):
@@ -126,6 +128,11 @@ class player(entity):
         self.selectedWeapon=None
         taskMgr.add(self.move,"playerMoveTask")
 
+        #test values for m1X (no other playertypes at this time)
+        #-10 prevents from looking too high (clips into pelvis)
+        #32 keeps from going too low and making gaps in model visible
+        self.traversalLimits=(-10,32)
+
     # procedure setPlayer
     # bool -> player assignment/not
     def setPlayer(self,state=True):
@@ -137,10 +144,20 @@ class player(entity):
             # store scene camera as property of this entity (since scene camera should be on the object)
             self.camera = base.camera
             self.keyMap= base.keyMap
-            self.camera.reparentTo(self.actor)
+            # expose camera bone from the model
+            cameraBone = self.actor.exposeJoint(None, "modelRoot", "camera")
+            self.camera.reparentTo(cameraBone)
+            #get position of camera joint relative to the actor itself
+            relPoint=self.actor.getRelativePoint(cameraBone, cameraBone.getPos())
+            print(relPoint)
+            self.camera.setPos(relPoint)
+            self.camera.setHpr(0,90,0)
+
+            self.neck=self.actor.controlJoint(None, "modelRoot", "neck")
+            self.head = self.actor.controlJoint(None, "modelRoot", "head")
             # set camera to be 10 behind and 15% above
-            self.camera.setPos(self.actor.getX(), self.actor.getY() + 50, self.actor.getZ()+self.height)
-            self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
+            #self.camera.setPos(self.actor.getX(), self.actor.getY()+3, self.actor.getZ()+self.height)
+            #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
 
     #task move
     def move(self, task):
@@ -158,7 +175,12 @@ class player(entity):
         # check if there is any movement
         if (True in self.keyMap.values()):
             #isMobile tracks whether object is moving or not for other functions
-            self.isMobile=True
+
+            #TODO: direction specific animations
+            #for now just loop walking
+            if not self.isMobile:
+                self.actor.loop("walk")
+                self.isMobile=True
             # for every direction that is true, move object that way
             # do the same with the camera
             if self.keyMap["forward"]:
@@ -168,17 +190,23 @@ class player(entity):
             if self.keyMap["back"]:
                 self.actor.setY(self.actor, + 100 * dt)
                 #self.camera.setY(self.camera.getY() + 25 * dt)
+
             if self.keyMap["left"]:
-                self.actor.setX(self.actor, + 100 * dt)
-                #self.camera.setH(self.camera.getH() + 200 * dt)
+                #self.actor.setX(self.actor, + 100 * dt)
+                self.actor.setH(self.actor.getH() + 200 * dt)
+                #counter movement of torso
+                self.neck.setR(self.neck.getR() - 200 * dt)
             if self.keyMap["right"]:
-                self.actor.setX(self.actor, - 100 * dt)
-                #self.camera.setH(self.camera.getH() - 200 * dt)
+                #self.actor.setX(self.actor, - 100 * dt)
+                self.actor.setH(self.actor.getH() - 200 * dt)
+                self.neck.setR(self.neck.getR() + 200 * dt)
 
             # lastly if attempting move simulate gravity as well
             self.actor.setZ(self.actor.getZ() - 50 * dt)
         else:
             self.isMobile=False
+            #otherwise stop walk animation
+            self.actor.stop()
         return task.cont
 
     #procedure updateCamera
@@ -220,10 +248,18 @@ class player(entity):
             self.lastMouseX, self.lastMouseY = 0, 0
 
         #rotate model by delta X
-        self.actor.setH(self.actor.getH()-dx*60)
+        #self.actor.setH(self.actor.getH() - dx * 60)
+
+        #rotate just neck by delta x
+        self.neck.setR(self.neck.getR()-dx*60)
+        #rotate head for up down
+        #set constraints for this
+        if self.traversalLimits[0] < self.head.getP() - dy * 60 < self.traversalLimits[1]:
+            self.head.setP(self.head.getP() - dy * 60)
+
         #update camera to keep up
         #test - vertical shaking while moving
-        self.camera.setPos(-2, 30, self.height*1.05)
+        #self.camera.setPos(-2, 30, self.height*1.05)
         #project vector from model and put camera there
         #camOffset=(0, -30,self.height)
         #rotate vector
@@ -248,7 +284,7 @@ class player(entity):
         self.actor.removeEpstein()
 
 
-class vehicle(entity):
+class vehicle(player):
     '''
     Base class for vehicles
     Bipedal characters can inherit directly from entity but vehicle handling demands special attention
@@ -261,4 +297,4 @@ class weapon():
     class contains model, projectile, range, noise, and mag size
     '''
     def __init__(self):
-        pass
+        #weapons are more than just data - each weapon has a 3D representation that must be loaded in and rendered

@@ -35,6 +35,11 @@ class MenuFSM(FSM):
         #create instance of showBase to be used for the rest of the application
         base=ShowBase()
 
+        #set window size
+        winsize=WindowProperties()
+        winsize.setSize(1024,600)
+        base.win.requestProperties(winsize)
+
         #create objects
         self.menu=None
         self.mission=None
@@ -83,6 +88,7 @@ class mainMenu():
         self.frameMain=DirectFrame(
             frameSize=(base.a2dLeft, base.a2dRight, base.a2dBottom, base.a2dTop)
         )
+
 
         # Add button
         self.makeButton("START DEMO",0,["Menu-Start"])
