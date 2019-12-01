@@ -33,6 +33,10 @@ class mainGame(ShowBase):
         base.cTrav = CollisionTraverser()   #switched to base
         base.pusher = CollisionHandlerPusher()  #switched to base
 
+        #handle bullet collisions
+        # accept this event and pass it to method bulletCollided
+        base.accept('bulletCollision', bulletCollided)
+
         # self.render references base.render
         self.render=base.render
 

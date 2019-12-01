@@ -1,7 +1,10 @@
-from math import sin,cos
+import math
+
 
 #function: rotateVector
-from panda3d.core import WindowProperties
+from panda3d.core import WindowProperties, Quat, Vec3
+
+from templates import entity
 
 
 def rotateVector(vector,angle):
@@ -9,11 +12,11 @@ def rotateVector(vector,angle):
 
     '''
     #https://stackoverflow.com/questions/14607640/rotating-a-vector-in-3d-space
-    newX=vector[0]*cos(angle)-vector[1]*sin(angle)
-    newY=vector[0]*sin(angle)-vector[1]*cos(angle)
+    newX= vector[0] * math.cos(angle) - vector[1] * math.sin(angle)
+    newY= vector[0] * math.sin(angle) - vector[1] * math.cos(angle)
     return newX,newY,vector[2]
 
-global base
+
 # procedure setKeybinds
 # None -> None
 def setKeybinds():
@@ -21,10 +24,12 @@ def setKeybinds():
     Inform instance what keypresses to accept and what to do
     Creates dict property containing movement patterns and associates WASD with each
     base.keyMap dict will be used by player class to determine object transforms
+
+    This is really just a series of event handlers on base
     '''
     # set up dictionary that stores which movements to be making - default to false
     base.keyMap = {
-        "forward": 0, "left": 0, "back": 0, "right": 0}
+        "forward": 0, "left": 0, "back": 0, "right": 0, "firing": 0, "secondary":0}
     # set up instance to accept keypresses and adjust booleans in keyMap
     # for instance, if pressing D, keyMap["right"] is true - we should be attempting move right with player object
     base.accept("w", setKey, ["forward", True])
@@ -36,6 +41,10 @@ def setKeybinds():
     base.accept("a-up", setKey, ["left", False])
     base.accept("s-up", setKey, ["back", False])
     base.accept("d-up", setKey, ["right", False])
+    # if mouse down, firing, and opposite
+    base.accept("mouse1", setKey, ["firing", True])
+    base.accept("mouse1-up", setKey,["firing", False])
+
 
 # procedure setKey
 # str key, str value -> key mappings
@@ -73,3 +82,44 @@ def setMouseMode(mode):
     base.win.requestProperties(props)
     #record as property
     base.mouseMode=mode
+
+#procedure: bulletCollided
+def bulletCollided(entry):
+    '''
+    handle a bullet colliding with another object
+    delete bullet and cause specified damage to object
+    '''
+    bullet=entry.getFromNodePath()
+    victim=entry.getIntoNodePath()
+
+    #if it is of type entity or inherited cause damage
+    if isinstance(victim,entity):
+        victim.addDamage(bullet.damage)
+    #then destroy
+    bullet.removeNode()
+    del bullet
+
+#https://discourse.panda3d.org/t/convert-vector-to-hpr/2118/5
+#function: vectorToHPR()
+def vectorToHPR(vector):
+    '''
+    converts direction vector into Heading, Pitch, and Roll Panda3D attributes
+    '''
+    X,Y,Z=vector[0],vector[1],vector[2]
+    H= -math.atan2(X, Y) * 180 / math.pi
+    P= math.asin(Z) * 180 / math.pi
+    R=0
+    return H, P, R
+
+#https://discourse.panda3d.org/t/points-and-vectors/1782/6
+#function: HPRtoVector
+def HPRtoVector(hpr):
+    #q1 = Quat()
+    #q1.setHpr(hpr)
+    #return q1.xform(Vec3(0, 1, 0))
+    X = math.sin(hpr[0] / 180 * math.pi)
+    Y = math.cos(hpr[0] / 180 * math.pi)
+    Z = 0
+    return X,Y,Z
+
+global base

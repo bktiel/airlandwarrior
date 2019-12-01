@@ -1,10 +1,12 @@
 #definitions for actors
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.ShowBase import ShowBase, CollisionHandlerEvent, LVector3f, Vec3, NodePath
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.actor.Actor import Actor
 from direct.task.TaskManagerGlobal import taskMgr
+import helper
 # all collision stuff
 from panda3d.core import CollisionNode, CollideMask, CollisionSphere
+
 
 
 #presume use of global showbase object
@@ -207,6 +209,9 @@ class player(entity):
             self.isMobile=False
             #otherwise stop walk animation
             self.actor.stop()
+
+        if self.keyMap['firing']:
+            self.shoot()
         return task.cont
 
     #procedure updateCamera
@@ -274,7 +279,25 @@ class player(entity):
         '''
         Fire primary weapon
         '''
-        pass
+
+        headgun=self.actor.exposeJoint(None,"modelRoot","headgun2")
+        headgun2=self.actor.exposeJoint(None,"modelRoot","headgun")
+
+        #normVec=(self.neck.getHpr()+self.head.getHpr())/180
+        #normVec.normalized()
+        #get a vector of headgun bone relative to base renderer (global coordinate space vector)
+
+        #https://discourse.panda3d.org/t/calculating-forward-vector-from-hpr/6261/2
+        normVec=base.render.getRelativeVector(headgun,Vec3(0,1,0))
+
+
+        bullet(
+            headgun.getPos(base.render),
+            normVec,
+            3,
+            50,
+            100
+        )
 
 
 
@@ -291,10 +314,119 @@ class vehicle(player):
     '''
     pass
 
+class bullet():
+    #tuple pos, tuple target, float damage, float speed, float range -> bullet
+    def __init__(self, pos, dir, damage, speed, range):
+        #bullets have a speed, a model, and a damage. Both should be parameters
+        #range as well
+        self.start=pos
+        self.direction=dir.normalized()
+        self.damage=damage
+        self.speed=speed
+        self.range=range
+        self.model=base.loader.loadModel('models/bullet')
+        self.model.reparentTo(base.render)
+        self.model.setPos(pos)
+        #self.target=target
+        #create collider
+        self.collider=CollisionHandlerEvent()
+        #create event called 'bulletCollision' on hit
+        self.collider.addInPattern('bulletCollision')
+
+        #rotate model such that it follows the passed direction argument vector
+        self.model.setHpr(
+            helper.vectorToHPR(dir)
+        )
+
+        #assign direction based on rotation
+        #THIS TOOK WAY TOO MUCH EFFORT TO FIGURE OUT
+        #normVec here is the model nodepath taking the passed argument vector (dir)
+        #belonging to another node (base.render)
+        #and adjusting it to its local coordinate space - what would this vector look like from
+        #self.model's perspective. Then it is normalized and assigned.
+        normVec=self.model.getRelativeVector(base.render,dir)
+        normVec.normalize()
+        self.direction=normVec
+
+        #normVec=base.render.getRelativeVector(self.model,Vec3(0,1,0))
+        #print(self.model.getHpr())
+        #print(normVec)
+
+
+        #start task to move forward at speed
+        taskMgr.add(self.accelerate, "bulletAccelerateTask")
+
+    #task: accelerate
+    def accelerate(self, task):
+        """
+        Task moves bullet forward until it hits an object or range is met
+        """
+        #range is decremented each tick
+        #check to make sure not 0
+        if self.range <=0:
+            #if range has ran out kill task and this object
+            self.model.removeNode()
+            return task.done
+
+        #otherwise proceed, move object and decrement range
+        dt=globalClock.getDt()
+
+        #distVec=min((self.start-self.target),(self.target-self.start))
+        #distVec=distVec.normalized()
+        #print(distVec)
+        #print(self.direction)
+        #take normalized direction vector and apply to transform
+        self.model.setFluidX(self.model, self.direction[0] * self.speed * dt)
+        self.model.setFluidY(self.model, self.direction[1] * self.speed * dt)
+        self.model.setFluidZ(self.model, self.direction[2] * self.speed * dt)
+        self.range-=(self.speed*dt)
+        return task.cont
+
 class weapon():
     '''
     weapon class is any weapon used by any character/vehicle in world
     class contains model, projectile, range, noise, and mag size
     '''
     def __init__(self):
-        #weapons are more than just data - each weapon has a 3D representation that must be loaded in and rendered
+        # weapons are more than just data - each weapon has a 3D representation that must be loaded in and rendered
+        # properties that specify model, texture, sound are specified as defaults to be switched by children
+        self.model=base.loader.loadModel("models/example")
+        self.damage = 1
+        self.range=10
+        self.ammo={
+            'magSize':5,
+            'reserve':20,
+            'currentMag':5
+        }
+        self.firingNoise=''
+        self.reloadNoise=''
+        self.reloadTime=0
+        self.isReloading=False #boolean whether an instance is reloading - cannot fire if so
+
+        #make visible and attach
+        self.model.reparentTo(base.render)
+    # procedure reload
+    def reload(self):
+        '''
+        Reload self.ammo['currentMag'] from available ammo
+        '''
+        # if greater than 0 action is possible
+        # also make sure that not doubling up on action - should not be isReloading either
+        if not self.isReloading and self.ammo['reserve']>0:
+            self.isReloading=True
+            self.ammo['currentMag']+=min(self.ammo['reserve'],self['magSize'])
+            self.ammo['reserve']-=self.ammo['currentMag']
+        else:
+            #TODO notify reload failed and user needs ammmmmoooo
+            pass
+    #procedure fire
+    def fire(self):
+        '''
+        Firing behavior defined here. Each weapon should typically check for ammo,
+        decrement, and then perform some kind of behavior
+        A basic gun makes just a raycast, an effect, and then does self.damage to first entity in collision
+        '''
+        pass
+
+
+
