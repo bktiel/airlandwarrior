@@ -1,8 +1,10 @@
 from random import randint, randrange, uniform
 
+from direct.filter.CommonFilters import CommonFilters
 from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
 from direct.gui.DirectFrame import DirectFrame
-from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight
+from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
+    NodePath, PandaNode, LightRampAttrib, PointLight
 # all collision stuff
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerPusher, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
@@ -55,6 +57,7 @@ class mainGame(ShowBase):
         setMouseMode(1)
 
         self.player = player("models/m14", base, (0, 200, -60))
+        entity("models/m14",base,(0, 210, -60))
 
         locationJoint=self.player.actor.exposeJoint(None, "modelRoot", "frontWeaponPod")
         print((locationJoint.getParent()))
@@ -70,6 +73,39 @@ class mainGame(ShowBase):
         self.spawnBases()
         self.spawnEnemies()
 
+        # Enable a 'light ramp' - this discretizes the lighting,
+        # which is half of what makes a model look like a cartoon.
+        # Light ramps only work if shader generation is enabled,
+        # so we call 'setShaderAuto'.
+        tempnode = NodePath(PandaNode("temp node"))
+        tempnode.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.4))
+        tempnode.setShaderAuto()
+        base.cam.node().setInitialState(tempnode.getState())
+
+        self.separation = 1  # Pixels
+        self.filters = CommonFilters(base.win, base.cam)
+        filterok = self.filters.setCartoonInk(separation=self.separation)
+        if (filterok == False):
+            print("not good enough GPU")
+            exit()
+        base.accept("v", base.bufferViewer.toggleEnable)
+        plightnode = DirectionalLight("point light")
+        #plightnode.setAttenuation((1, 0, 0))
+        plightnode = PointLight("point light")
+        plightnode.setAttenuation((1, 0, 0))
+        plight = base.render.attachNewNode(plightnode)
+        plight.node().setScene(base.render)
+        plight.node().setShadowCaster(True)
+        plight.setPos(0,60,100)
+        print(plight.getHpr())
+        plight.lookAt(self.environment)
+        print(plight.getHpr())
+        alightnode = AmbientLight("ambient light")
+        alightnode.setColor((0.8, 0.8, 0.8, 1))
+        alight = base.render.attachNewNode(alightnode)
+        base.render.setLight(alight)
+        base.render.setLight(plight)
+
 
 
     #procedure makeEnviron
@@ -79,19 +115,18 @@ class mainGame(ShowBase):
         '''
         #load environment model and add to renderer
         self.environment = base.loader.loadModel("models/" + envModel)
-        self.environment.reparentTo(self.render)
+        self.environment.reparentTo(base.render)
         self.environment.setPos(0, 0, -10)
         #add to cleanup list
         base.cleanup.append(self.environment)
 
-        ambientLight = AmbientLight("ambientLight")
-        ambientLight.setColor((.3, .3, .3, 1))
-        directionalLight = DirectionalLight("directionalLight")
-        directionalLight.setDirection((-5, -5, -5))
-        directionalLight.setColor((1, 1, 1, 1))
-        directionalLight.setSpecularColor((1, 1, 1, 1))
-        base.render.setLight(base.render.attachNewNode(ambientLight))
-        base.render.setLight(base.render.attachNewNode(directionalLight))
+        #ambientLight = AmbientLight("ambientLight")
+        #ambientLight.setColor((.3, .3, .3, 1))
+        #directionalLight = DirectionalLight("directionalLight")
+        #directionalLight.setColor((1, 1, 1, 1))
+        #directionalLight.setSpecularColor((1, 1, 1, 1))
+        #base.render.setLight(base.render.attachNewNode(ambientLight))
+        #base.render.setLight(base.render.attachNewNode(directionalLight))
 
     #procedure make GUI
     def makeGUI(self):

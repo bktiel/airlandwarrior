@@ -59,7 +59,7 @@ class entity():
         self.mainCol.addSolid(CollisionSphere(0, 0, self.height / 2, self.height / 2))
         # specify valid collisions for collision node
         self.mainCol.setFromCollideMask(CollideMask.bit(0))
-        self.mainCol.setIntoCollideMask(CollideMask.allOff())
+        self.mainCol.setIntoCollideMask(CollideMask.allOn())
         # attach collision node to actor
         self.cNode = self.actor.attachNewNode(self.mainCol)
         # show
@@ -194,7 +194,7 @@ class player(entity):
             #TODO: direction specific animations
             #for now just loop walking
             if not self.isMobile:
-                self.actor.loop("walk")
+                self.actor.loop("walk", restart=0)
                 self.isMobile=True
             # for every direction that is true, move object that way
             # do the same with the camera
@@ -335,11 +335,24 @@ class bullet():
         self.model=base.loader.loadModel('models/bullet')
         self.model.reparentTo(base.render)
         self.model.setPos(pos)
+
         #self.target=target
-        #create collider
-        self.collider=CollisionHandlerEvent()
-        #create event called 'bulletCollision' on hit
-        self.collider.addInPattern('bulletCollision')
+        #create collision sphere
+        #TODO account for larger bullet sizes
+        cs = CollisionSphere(0, 0, 0, 1)
+        self.cNode=self.model.attachNewNode(CollisionNode('cNode'))
+        self.cNode.node().addSolid(cs)
+        #create collider handler, if one doesn't already exist
+        try:
+            # attempt to add to global collision traverser
+            base.cTrav.addCollider(self.cNode, base.bulletCollider)
+        except AttributeError:
+            base.bulletCollider=CollisionHandlerEvent()
+            # create event called 'bulletCollision' on hit
+            base.bulletCollider.addInPattern('bulletCollision')
+        finally:
+            # retry
+            base.cTrav.addCollider(self.cNode, base.bulletCollider)
 
         #rotate model such that it follows the passed direction argument vector
         self.model.setHpr(
