@@ -31,6 +31,8 @@ class entity():
 
         # set health
         self.health=DEFAULT_HEALTH
+        # speed
+        self.speed=10
 
         # creates actor object using constructor and parents to passed renderer
         self.actor = Actor(model)
@@ -116,11 +118,17 @@ class player(entity):
         sets mouse mode to relative
         '''
         entity.__init__(self, model, base, pos)
+        # self turnSpeed and Speed
+        self.speed=70
+        self.turnSpeed=60
+
         # extra player specific stuff
         # store mouseX, mouseY
         self.lastMouseX, self.lastMouseY = None, None
         # isMobile used to determine if animation currently playing - default to false
         self.isMobile = False
+        # isPlayer used to determine if a player
+        self.isPlayer = False
         # camera init
         self.setPlayer()
 
@@ -143,6 +151,8 @@ class player(entity):
         if state=true, set camera to focus on this entity
         '''
         if state:
+            # set to player
+            self.isPlayer=True
             # store scene camera as property of this entity (since scene camera should be on the object)
             self.camera = base.camera
             self.keyMap= base.keyMap
@@ -161,6 +171,9 @@ class player(entity):
             #self.camera.setPos(self.actor.getX(), self.actor.getY()+3, self.actor.getZ()+self.height)
             #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
 
+            #set up player headgun (this is where most projectiles will be aimed)
+            self.headgun=self.actor.exposeJoint(None, "modelRoot", "headgun")
+
     #task move
     def move(self, task):
         '''
@@ -175,7 +188,7 @@ class player(entity):
         self.updateCamera()
 
         # check if there is any movement
-        if (True in self.keyMap.values()):
+        if (self.keyMap["forward"] or self.keyMap["back"] or self.keyMap["left"] or self.keyMap["right"]):
             #isMobile tracks whether object is moving or not for other functions
 
             #TODO: direction specific animations
@@ -186,22 +199,22 @@ class player(entity):
             # for every direction that is true, move object that way
             # do the same with the camera
             if self.keyMap["forward"]:
-                self.actor.setY(self.actor, - 100 * dt)
+                self.actor.setY(self.actor, - self.speed * dt)
                 # camera too..
                 #self.camera.setY(self.camera.getY() - 25 * dt)
             if self.keyMap["back"]:
-                self.actor.setY(self.actor, + 100 * dt)
+                self.actor.setY(self.actor, + self.speed * dt)
                 #self.camera.setY(self.camera.getY() + 25 * dt)
 
             if self.keyMap["left"]:
                 #self.actor.setX(self.actor, + 100 * dt)
-                self.actor.setH(self.actor.getH() + 200 * dt)
+                self.actor.setH(self.actor.getH() + self.turnSpeed * dt)
                 #counter movement of torso
-                self.neck.setR(self.neck.getR() - 200 * dt)
+                self.neck.setR(self.neck.getR() - self.turnSpeed * dt)
             if self.keyMap["right"]:
                 #self.actor.setX(self.actor, - 100 * dt)
-                self.actor.setH(self.actor.getH() - 200 * dt)
-                self.neck.setR(self.neck.getR() + 200 * dt)
+                self.actor.setH(self.actor.getH() - self.turnSpeed * dt)
+                self.neck.setR(self.neck.getR() + self.turnSpeed * dt)
 
             # lastly if attempting move simulate gravity as well
             self.actor.setZ(self.actor.getZ() - 50 * dt)
@@ -209,7 +222,7 @@ class player(entity):
             self.isMobile=False
             #otherwise stop walk animation
             self.actor.stop()
-
+        #check if shooting, if so, shoot
         if self.keyMap['firing']:
             self.shoot()
         return task.cont
@@ -279,25 +292,19 @@ class player(entity):
         '''
         Fire primary weapon
         '''
-
-        headgun=self.actor.exposeJoint(None,"modelRoot","headgun2")
-        headgun2=self.actor.exposeJoint(None,"modelRoot","headgun")
-
-        #normVec=(self.neck.getHpr()+self.head.getHpr())/180
-        #normVec.normalized()
-        #get a vector of headgun bone relative to base renderer (global coordinate space vector)
+        #fire selected weapon
+        self.selectedWeapon.fire()
 
         #https://discourse.panda3d.org/t/calculating-forward-vector-from-hpr/6261/2
-        normVec=base.render.getRelativeVector(headgun,Vec3(0,1,0))
+        #targetVector=base.render.getRelativeVector(self.headgun,Vec3(0,1,0))
 
-
-        bullet(
-            headgun.getPos(base.render),
-            normVec,
-            3,
-            50,
-            100
-        )
+        #bullet(
+        #    base.render.getRelativePoint(self.headgun,Vec3(0,2,0)),
+        #    targetVector,
+        #    3,
+        #    480,
+        #    400
+        #)
 
 
 
@@ -315,11 +322,12 @@ class vehicle(player):
     pass
 
 class bullet():
-    #tuple pos, tuple target, float damage, float speed, float range -> bullet
-    def __init__(self, pos, dir, damage, speed, range):
+    #tuple pos, tuple target, float damage, float speed, float range, float accuracy -> bullet
+    def __init__(self, pos, dir, damage, speed, range, accuracy=1):
         #bullets have a speed, a model, and a damage. Both should be parameters
         #range as well
         self.start=pos
+        self.accuracy=accuracy
         self.direction=dir.normalized()
         self.damage=damage
         self.speed=speed
@@ -387,7 +395,8 @@ class weapon():
     weapon class is any weapon used by any character/vehicle in world
     class contains model, projectile, range, noise, and mag size
     '''
-    def __init__(self):
+    # passed targetJoint to attach to
+    def __init__(self,targetJoint):
         # weapons are more than just data - each weapon has a 3D representation that must be loaded in and rendered
         # properties that specify model, texture, sound are specified as defaults to be switched by children
         self.model=base.loader.loadModel("models/example")
@@ -404,7 +413,7 @@ class weapon():
         self.isReloading=False #boolean whether an instance is reloading - cannot fire if so
 
         #make visible and attach
-        self.model.reparentTo(base.render)
+        self.model.reparentTo(targetJoint)
     # procedure reload
     def reload(self):
         '''

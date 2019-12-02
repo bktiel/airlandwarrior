@@ -54,7 +54,15 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m13", base, (0, 200, -60))
+        self.player = player("models/m14", base, (0, 200, -60))
+
+        locationJoint=self.player.actor.exposeJoint(None, "modelRoot", "frontWeaponPod")
+        print((locationJoint.getParent()))
+
+        M1X_M2(self.player,locationJoint)
+        #gunModel=base.loader.loadModel("models/m1xMG")
+        #gunModel.reparentTo(locationJoint)
+
 
         #load gameplay logic
         self.playerScore=0

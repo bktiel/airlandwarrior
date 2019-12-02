@@ -92,6 +92,8 @@ def bulletCollided(entry):
     bullet=entry.getFromNodePath()
     victim=entry.getIntoNodePath()
 
+    print("collision!")
+
     #if it is of type entity or inherited cause damage
     if isinstance(victim,entity):
         victim.addDamage(bullet.damage)
