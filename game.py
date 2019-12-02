@@ -57,9 +57,9 @@ class mainGame(ShowBase):
         setMouseMode(1)
 
         self.player = player("models/m14", base, (0, 200, -60))
-        entity("models/m14",base,(0, 210, -60))
+        entity("models/basic",base,(0, 210, -60))
 
-        locationJoint=self.player.actor.exposeJoint(None, "modelRoot", "frontWeaponPod")
+        locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
         print((locationJoint.getParent()))
 
         M1X_M2(self.player,locationJoint)
@@ -96,7 +96,7 @@ class mainGame(ShowBase):
         plight = base.render.attachNewNode(plightnode)
         plight.node().setScene(base.render)
         plight.node().setShadowCaster(True)
-        plight.setPos(0,60,100)
+        plight.setPos(0,60,300)
         print(plight.getHpr())
         plight.lookAt(self.environment)
         print(plight.getHpr())

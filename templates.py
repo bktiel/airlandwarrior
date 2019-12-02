@@ -11,7 +11,7 @@ from panda3d.core import CollisionNode, CollideMask, CollisionSphere
 
 #presume use of global showbase object
 global base
-class entity():
+class entity(Actor):
     '''
     Base class for any characters
     Contains methods for movement, collision, model loading
@@ -23,6 +23,7 @@ class entity():
         constructor for entity. attaches model to calling instance renderer
         also stores size definitions and creates basic collision object
         '''
+        Actor.__init__(self)
         DEFAULT_HEALTH=50
 
 
@@ -33,24 +34,24 @@ class entity():
         self.health=DEFAULT_HEALTH
         # speed
         self.speed=10
-
         # creates actor object using constructor and parents to passed renderer
-        self.actor = Actor(model)
+        self.loadModel(model)
         self.renderer = base.render
-        self.actor.reparentTo(self.renderer)
+        self.reparentTo(self.renderer)
         # put at specified location
-        self.actor.setPos(pos)
+        self.setPos(pos)
         # store dimensions for later
         # https://discourse.panda3d.org/t/getting-the-height-width-and-length-of-models-solved/6504
-        minimum, maximum = self.actor.getTightBounds()
+        minimum, maximum = self.getTightBounds()
         # make sure all numbers are positive for best (any) results
         self.bounds = [abs(num) for num in (minimum - maximum)]
         self.width, self.length, self.height = self.bounds[0], self.bounds[1], self.bounds[2]
 
+
         #create node at front of actor to track rotation
         #self.front = NodePath(PandaNode("front"))
-        #self.front.reparentTo(self.actor)
-        #self.front.setY(self.actor.getY()+2)
+        #self.front.reparentTo(self)
+        #self.front.setY(self.getY()+2)
 
         # COLLISION PROPERTIES
         # create collision ray that is height of model pointing down (will detect ground collisions)
@@ -61,16 +62,20 @@ class entity():
         self.mainCol.setFromCollideMask(CollideMask.bit(0))
         self.mainCol.setIntoCollideMask(CollideMask.allOn())
         # attach collision node to actor
-        self.cNode = self.actor.attachNewNode(self.mainCol)
+        self.cNode = self.attachNewNode(self.mainCol)
         # show
         self.cNode.show()
         # make instance collision traverser aware of this collision node, tell it how to handle (with pusher)
         base.cTrav.addCollider(self.cNode, base.pusher)
         # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
-        base.pusher.addCollider(self.cNode, self.actor, base.drive.node())
+        base.pusher.addCollider(self.cNode, self, base.drive.node())
 
         #add to cleanup for deletion later
         base.cleanup.append(self)
+
+        #store reference to self
+        #https://discourse.panda3d.org/t/inheriting-from-nodepath/10886/4
+        self.mainCol.setPythonTag("owner",self)
 
         # TODO if no initial collision, enforce gravity until collision
 
@@ -83,8 +88,9 @@ class entity():
         If self.health < 0 call delete self
         '''
         # TODO make pretty death
-        self.health+=dmg
+        self.health-=dmg
         if self.health <= 0:
+            self.hide()
             del self
 
     #procedure class deconstructor
@@ -94,9 +100,11 @@ class entity():
         Destroy an object cleanly from instance
         '''
         #destroy actor
-        self.actor.hide()
-        self.actor.remove_node()
-        self.actor.delete()
+        self.hide()
+        self.remove_node()
+        self.delete()
+        #remove pythontag from collision
+        self.mainCol.clearPythonTag("owner")
         #remove collision node from global collider
         base.cTrav.removeCollider(self.cNode)
 
@@ -157,27 +165,27 @@ class player(entity):
             self.camera = base.camera
             self.keyMap= base.keyMap
             # expose camera bone from the model
-            cameraBone = self.actor.exposeJoint(None, "modelRoot", "camera")
+            cameraBone = self.exposeJoint(None, "modelRoot", "camera")
             self.camera.reparentTo(cameraBone)
             #get position of camera joint relative to the actor itself
-            relPoint=self.actor.getRelativePoint(cameraBone, cameraBone.getPos())
+            relPoint=self.getRelativePoint(cameraBone, cameraBone.getPos())
             print(relPoint)
             self.camera.setPos(relPoint)
             self.camera.setHpr(0,90,0)
 
-            self.neck=self.actor.controlJoint(None, "modelRoot", "neck")
-            self.head = self.actor.controlJoint(None, "modelRoot", "head")
+            self.neck=self.controlJoint(None, "modelRoot", "neck")
+            self.head = self.controlJoint(None, "modelRoot", "head")
             # set camera to be 10 behind and 15% above
-            #self.camera.setPos(self.actor.getX(), self.actor.getY()+3, self.actor.getZ()+self.height)
-            #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ()+self.height)
+            #self.camera.setPos(self.getX(), self.getY()+3, self.getZ()+self.height)
+            #self.camera.lookAt(self.getX(), self.getY(), self.getZ()+self.height)
 
             #set up player headgun (this is where most projectiles will be aimed)
-            self.headgun=self.actor.exposeJoint(None, "modelRoot", "headgun")
+            self.headgun=self.exposeJoint(None, "modelRoot", "headgun")
 
     #task move
     def move(self, task):
         '''
-        Called every frame - if w,a,s,d pressed, move self.actor accordingly
+        Called every frame - if w,a,s,d pressed, move self accordingly
         If mouse location different and not in a menu, rotate actor by delta radians
         Adjust camera to keep up with move
         '''
@@ -194,34 +202,34 @@ class player(entity):
             #TODO: direction specific animations
             #for now just loop walking
             if not self.isMobile:
-                self.actor.loop("walk", restart=0)
+                self.loop("walk", restart=0)
                 self.isMobile=True
             # for every direction that is true, move object that way
             # do the same with the camera
             if self.keyMap["forward"]:
-                self.actor.setY(self.actor, - self.speed * dt)
+                self.setY(self, - self.speed * dt)
                 # camera too..
                 #self.camera.setY(self.camera.getY() - 25 * dt)
             if self.keyMap["back"]:
-                self.actor.setY(self.actor, + self.speed * dt)
+                self.setY(self, + self.speed * dt)
                 #self.camera.setY(self.camera.getY() + 25 * dt)
 
             if self.keyMap["left"]:
-                #self.actor.setX(self.actor, + 100 * dt)
-                self.actor.setH(self.actor.getH() + self.turnSpeed * dt)
+                #self.setX(self, + 100 * dt)
+                self.setH(self.getH() + self.turnSpeed * dt)
                 #counter movement of torso
                 self.neck.setR(self.neck.getR() - self.turnSpeed * dt)
             if self.keyMap["right"]:
-                #self.actor.setX(self.actor, - 100 * dt)
-                self.actor.setH(self.actor.getH() - self.turnSpeed * dt)
+                #self.setX(self, - 100 * dt)
+                self.setH(self.getH() - self.turnSpeed * dt)
                 self.neck.setR(self.neck.getR() + self.turnSpeed * dt)
 
             # lastly if attempting move simulate gravity as well
-            self.actor.setZ(self.actor.getZ() - 50 * dt)
+            self.setZ(self.getZ() - 50 * dt)
         else:
             self.isMobile=False
             #otherwise stop walk animation
-            self.actor.stop()
+            self.stop()
         #check if shooting, if so, shoot
         if self.keyMap['firing']:
             self.shoot()
@@ -266,7 +274,7 @@ class player(entity):
             self.lastMouseX, self.lastMouseY = 0, 0
 
         #rotate model by delta X
-        #self.actor.setH(self.actor.getH() - dx * 60)
+        #self.setH(self.getH() - dx * 60)
 
         #rotate just neck by delta x
         self.neck.setR(self.neck.getR()-dx*60)
@@ -282,10 +290,10 @@ class player(entity):
         #camOffset=(0, -30,self.height)
         #rotate vector
         #first need to get angle (getH is cumulative degrees, not ideal for rotation)
-        #playerAngle = (360-self.actor.getH())%360
+        #playerAngle = (360-self.getH())%360
         #now rotate
         #self.camera.setPos(player.getPos()+rotateVector(camOffset,playerAngle))
-        #self.camera.lookAt(self.actor.getX(), self.actor.getY(), self.actor.getZ() + self.height / 2)
+        #self.camera.lookAt(self.getX(), self.getY(), self.getZ() + self.height / 2)
 
     # procedure player.shoot
     def shoot(self):
@@ -311,7 +319,7 @@ class player(entity):
     #class deconstructor
     def __del__(self):
         entity.__del__(self)
-        self.actor.removeEpstein()
+        self.removeEpstein()
 
 
 class vehicle(player):
@@ -340,7 +348,10 @@ class bullet():
         #create collision sphere
         #TODO account for larger bullet sizes
         cs = CollisionSphere(0, 0, 0, 1)
-        self.cNode=self.model.attachNewNode(CollisionNode('cNode'))
+        self.mainCol=CollisionNode('cNode')
+        #set up circular reference so collision volume knows parent
+        self.mainCol.setPythonTag('owner',self)
+        self.cNode=self.model.attachNewNode(self.mainCol)
         self.cNode.node().addSolid(cs)
         #create collider handler, if one doesn't already exist
         try:
@@ -387,6 +398,7 @@ class bullet():
         if self.range <=0:
             #if range has ran out kill task and this object
             self.model.removeNode()
+            del self
             return task.done
 
         #otherwise proceed, move object and decrement range
@@ -402,6 +414,13 @@ class bullet():
         self.model.setFluidZ(self.model, self.direction[2] * self.speed * dt)
         self.range-=(self.speed*dt)
         return task.cont
+
+    #class deconstructor
+    def __del__(self):
+        #clear collision
+        self.mainCol.clearPythonTag("owner")
+        #remove object
+        self.model.removeNode()
 
 class weapon():
     '''

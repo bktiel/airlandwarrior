@@ -91,6 +91,9 @@ def bulletCollided(entry):
     '''
     bullet=entry.getFromNodePath()
     victim=entry.getIntoNodePath()
+    #try each for owner, generally if it's a collision that matters it'll have pythontag
+    bullet=bullet.getPythonTag("owner")
+    victim=victim.getPythonTag("owner")
 
     print("collision!")
 
@@ -98,7 +101,6 @@ def bulletCollided(entry):
     if isinstance(victim,entity):
         victim.addDamage(bullet.damage)
     #then destroy
-    bullet.removeNode()
     del bullet
 
 #https://discourse.panda3d.org/t/convert-vector-to-hpr/2118/5
