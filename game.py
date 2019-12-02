@@ -4,7 +4,7 @@ from direct.filter.CommonFilters import CommonFilters
 from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
 from direct.gui.DirectFrame import DirectFrame
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
-    NodePath, PandaNode, LightRampAttrib, PointLight
+    NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState
 # all collision stuff
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerPusher, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
@@ -57,7 +57,11 @@ class mainGame(ShowBase):
         setMouseMode(1)
 
         self.player = player("models/m14", base, (0, 200, -60))
-        entity("models/basic",base,(0, 210, -60))
+        enemy=entity("models/man",base,(0, 210, -65))
+        enemy.loop("walk")
+        enemy.weaponNode=enemy.exposeJoint(None, "modelRoot", "weaponNode")
+        rifle(enemy,enemy.weaponNode)
+
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
         print((locationJoint.getParent()))
@@ -73,38 +77,7 @@ class mainGame(ShowBase):
         self.spawnBases()
         self.spawnEnemies()
 
-        # Enable a 'light ramp' - this discretizes the lighting,
-        # which is half of what makes a model look like a cartoon.
-        # Light ramps only work if shader generation is enabled,
-        # so we call 'setShaderAuto'.
-        tempnode = NodePath(PandaNode("temp node"))
-        tempnode.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.4))
-        tempnode.setShaderAuto()
-        base.cam.node().setInitialState(tempnode.getState())
 
-        self.separation = 1  # Pixels
-        self.filters = CommonFilters(base.win, base.cam)
-        filterok = self.filters.setCartoonInk(separation=self.separation)
-        if (filterok == False):
-            print("not good enough GPU")
-            exit()
-        base.accept("v", base.bufferViewer.toggleEnable)
-        plightnode = DirectionalLight("point light")
-        #plightnode.setAttenuation((1, 0, 0))
-        plightnode = PointLight("point light")
-        plightnode.setAttenuation((1, 0, 0))
-        plight = base.render.attachNewNode(plightnode)
-        plight.node().setScene(base.render)
-        plight.node().setShadowCaster(True)
-        plight.setPos(0,60,300)
-        print(plight.getHpr())
-        plight.lookAt(self.environment)
-        print(plight.getHpr())
-        alightnode = AmbientLight("ambient light")
-        alightnode.setColor((0.8, 0.8, 0.8, 1))
-        alight = base.render.attachNewNode(alightnode)
-        base.render.setLight(alight)
-        base.render.setLight(plight)
 
 
 
@@ -127,6 +100,59 @@ class mainGame(ShowBase):
         #directionalLight.setSpecularColor((1, 1, 1, 1))
         #base.render.setLight(base.render.attachNewNode(ambientLight))
         #base.render.setLight(base.render.attachNewNode(directionalLight))
+
+        # Enable a 'light ramp' - this discretizes the lighting,
+        # which is half of what makes a model look like a cartoon.
+        # Light ramps only work if shader generation is enabled,
+        # so we call 'setShaderAuto'.
+        tempnode = NodePath(PandaNode("temp node"))
+        tempnode.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.4))
+        tempnode.setShaderAuto()
+        # add to cleanup
+        base.cleanup.append(tempnode)
+        base.cam.node().setInitialState(tempnode.getState())
+
+        self.separation = 1 # Pixels
+        filterok = base.filters.setCartoonInk(separation=self.separation)
+        if (filterok == False):
+            print("not good enough GPU")
+            exit()
+        base.accept("v", base.bufferViewer.toggleEnable)
+        #plightnode = DirectionalLight("point light")
+        plightnode = PointLight("point light")
+        plightnode.setAttenuation((1, 0, 0))
+        plight = base.render.attachNewNode(plightnode)
+        plight.node().setScene(base.render)
+        plight.node().setShadowCaster(True, 512, 512)
+        plight.setPos(0, 190, 300)
+        print(plight.getHpr())
+        plight.lookAt(self.environment)
+        print(plight.getHpr())
+        alightnode = AmbientLight("ambient light")
+        alightnode.setColor((0.8, 0.8, 0.8, 1))
+        alight = base.render.attachNewNode(alightnode)
+        base.render.setLight(alight)
+        base.render.setLight(plight)
+
+        base.cleanup.append(alight)
+        base.cleanup.append(plight)
+
+
+        #load skybox
+        skybox = base.loader.loadModel("models/skybox.bam")
+        skybox.reparent_to(base.render)
+        skybox.set_scale(20000)
+
+        skybox_texture = base.loader.loadTexture("models/tex/sky.png")
+        skybox_texture.set_minfilter(SamplerState.FT_linear)
+        skybox_texture.set_magfilter(SamplerState.FT_linear)
+        skybox_texture.set_wrap_u(SamplerState.WM_repeat)
+        skybox_texture.set_wrap_v(SamplerState.WM_mirror)
+        skybox_texture.set_anisotropic_degree(16)
+        skybox.set_texture(skybox_texture)
+
+        skybox_shader = Shader.load(Shader.SL_GLSL, "skybox.vert.glsl", "skybox.frag.glsl")
+        skybox.set_shader(skybox_shader)
 
     #procedure make GUI
     def makeGUI(self):
@@ -179,11 +205,20 @@ class mainGame(ShowBase):
         '''
         Cleanly deletes all objects created by this scene
         '''
-        self.render.getChildren().detach()
+        #clear all lights
+        base.render.clearLight()
+
+        #clear shader effect
+        base.filters.delCartoonInk()
+
         #delete all items in cleanup
-        for i in range(len(base.cleanup)):
-            garbage=base.cleanup.pop()
+        base.render.getChildren().detach()
+        for garbage in base.cleanup:
+            #garbage=base.cleanup.pop()
+            garbage.remove_node()
+
             del garbage
+
 
 
 #app = mainGame()

@@ -90,3 +90,11 @@ class TOWPod(weapon):
     '''
     def __init__(self):
         weapon.__init__(self)
+
+
+###class for infantry rifle
+class rifle(weapon):
+    #constructor
+    def __init__(self, owner, joint):
+        self.model = base.loader.loadModel("models/gun")
+        self.model.reparentTo(joint)

@@ -64,7 +64,7 @@ class entity(Actor):
         # attach collision node to actor
         self.cNode = self.attachNewNode(self.mainCol)
         # show
-        self.cNode.show()
+        #self.cNode.show()
         # make instance collision traverser aware of this collision node, tell it how to handle (with pusher)
         base.cTrav.addCollider(self.cNode, base.pusher)
         # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push

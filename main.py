@@ -1,3 +1,4 @@
+from direct.filter.CommonFilters import CommonFilters
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import *
@@ -34,6 +35,8 @@ class MenuFSM(FSM):
         global base
         #create instance of showBase to be used for the rest of the application
         base=ShowBase()
+        #set render filters up
+        base.filters = CommonFilters(base.win, base.cam)
 
         #set window size
         winsize=WindowProperties()
