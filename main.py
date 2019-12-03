@@ -1,5 +1,5 @@
 from direct.filter.CommonFilters import CommonFilters
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.ShowBase import ShowBase, load_prc_file
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import *
 from direct.fsm.FSM import FSM
@@ -8,7 +8,6 @@ from helper import *
 
 from game import mainGame
 from panda3d.core import TextNode
-
 
 class MenuFSM(FSM):
     '''
@@ -37,6 +36,7 @@ class MenuFSM(FSM):
         base=ShowBase()
         #set render filters up
         base.filters = CommonFilters(base.win, base.cam)
+
 
         #set window size
         winsize=WindowProperties()

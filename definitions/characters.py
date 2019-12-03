@@ -27,20 +27,29 @@ class rifleman(entity):
 
         #make collision sphere as 'radar' of sorts
         radarNode = CollisionNode('radar')
-        self.contacts=CollisionHandlerQueue()
+        #self.radarQueue=CollisionHandlerQueue()
         cs=CollisionSphere(0,0,0,self.viewRange/2)
-        #radarNode.setFromCollideMask(CollideMask.bit(3))
+        radarNode.setFromCollideMask(CollideMask.bit(3))
         radarNode.setIntoCollideMask(CollideMask.bit(3))
         self.radar=self.attachNewNode(radarNode)
         self.radar.node().addSolid(cs)
         #self.radar.show()
-        base.cTrav.addCollider(self.radar,self.contacts)
+        #base.cTrav.addCollider(self.radar,self.radarQueue)
+
+        #taskMgr.add(self.update,'riflemanUpdateTask')
 
 
+    #things that need to be executed every frame for this character object
+    def update(self,task):
+        #first get all collisions from radarQueue handler
+        for entry in self.radarQueue.getEntries():
+            victim=entry.getIntoNodePath()
+            victimParent=victim.getPythonTag('owner')
+            if 'terrain' not in victim.name \
+            and (victim.parent != self.radar.parent)\
+            and (victimParent != None):
+                print(entry)
 
-       # taskMgr.add(self.orders,'riflemanOrdersTask')
-
-    def orders(self,task):
         return task.cont
 
 class tank(vehicle):

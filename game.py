@@ -66,7 +66,17 @@ class mainGame(ShowBase):
         setMouseMode(1)
 
         self.player = player("models/m14", base, (0, 300, -10))
-        enemy=rifleman(base,(30,200,-20))
+        firingEnemy=enemy=rifleman(base,(15,200,-20))
+        #enemy.loop("firing")
+        enemy = rifleman(base, (20, 200, -20))
+        #enemy.loop("walk")
+        doppel=[]
+        doppelNodes=[]
+        for i in range(10):
+            offset=i*5
+            for i2 in range(6):
+                vOffset=i2*5
+                rifleman(base, (15 + offset, 200 + vOffset, -20))
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")

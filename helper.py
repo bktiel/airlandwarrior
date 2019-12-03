@@ -94,7 +94,7 @@ def bulletCollided(entry):
     #try each for owner, generally if it's a collision that matters it'll have pythontag
     bullet=bullet.getPythonTag("owner")
     victim=victim.getPythonTag("owner")
-    if victim is not None:
+    if victim is not None and bullet is not None:
         print("collision!")
 
         #if it is of type entity or inherited cause damage
