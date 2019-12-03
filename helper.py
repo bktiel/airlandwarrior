@@ -103,6 +103,24 @@ def bulletCollided(entry):
     #then destroy
     del bullet
 
+def entityCollided(entry):
+    perp=entry.getFromNodePath()
+    victim=entry.getIntoNodePath()
+
+    # try each for owner, generally if it's a collision that matters it'll have pythontag
+    perp = perp.getPythonTag("owner")
+
+    if perp is None:
+        return
+
+    # if it is terrain, make grounded
+    if 'terrain' in victim.name and not perp.isGrounded:
+        perp.isGrounded=True
+        return
+    # try each for owner, generally if it's a collision that matters it'll have pythontag
+    #perp=perp.getPythonTag("owner")
+    #victim=victim.getPythonTag("owner")
+
 #https://discourse.panda3d.org/t/convert-vector-to-hpr/2118/5
 #function: vectorToHPR()
 def vectorToHPR(vector):

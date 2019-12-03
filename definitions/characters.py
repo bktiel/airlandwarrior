@@ -1,11 +1,20 @@
 from templates import entity,player,vehicle
+from definitions.weapons import *
+
+global base
 #define characters
 
-class rifle(entity):
+class rifleman(entity):
     '''
     Basic rifleman
     '''
-    pass
+    #class constructor
+    #mostly similar to entity
+    def __init__(self,location):
+        #assign what we know off the bat
+        self.model="models/rifleman"
+        #make call to parent with this model
+        entity.__init__(self, self.model, base, location)
 
 class tank(vehicle):
     '''

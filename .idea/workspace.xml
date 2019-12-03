@@ -3,9 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="ff554fde-8aa3-4eb0-9e69-f0e7e13d051f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/definitions/characters.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/characters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/definitions/weapons.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/weapons.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/game.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/man.2.4.blend" beforeDir="false" afterPath="$PROJECT_DIR$/models/man.2.4.blend" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/man.2.4.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/models/man.2.4.blend1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/man.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/man.egg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/templates.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -156,7 +160,7 @@
       <workItem from="1574100153103" duration="3626000" />
       <workItem from="1574112293736" duration="4008000" />
       <workItem from="1574892025657" duration="69528000" />
-      <workItem from="1575317947932" duration="7417000" />
+      <workItem from="1575317947932" duration="15079000" />
     </task>
     <servers />
   </component>
@@ -178,13 +182,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/templates.py</url>
-          <line>91</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -195,15 +192,15 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="self.health" language="Python" />
-        <watch expression="__py_debug_temp_var_1869970400" />
+        <watch expression="perp.parent.getZ()" language="Python" />
+        <watch expression="perp.getPythonTag(&quot;owner&quot;).getZ()" language="Python" />
         <watch expression="garbage" />
         <watch expression="base.cleanup" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575328037029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575344308913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$game.coverage" NAME="game Coverage Results" MODIFIED="1574027271933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1574109068060" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

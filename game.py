@@ -4,9 +4,9 @@ from direct.filter.CommonFilters import CommonFilters
 from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
 from direct.gui.DirectFrame import DirectFrame
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
-    NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState
+    NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState, CollisionHandlerEvent
 # all collision stuff
-from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerPusher, CollisionHandlerQueue, \
+from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
 #custom classes
 from templates import player
@@ -35,7 +35,15 @@ class mainGame(ShowBase):
         base.cTrav = CollisionTraverser()   #switched to base
         base.pusher = CollisionHandlerPusher()  #switched to base
 
-        #handle bullet collisions
+        base.pusher.addInPattern('entityCollision')
+        #base.entityCollisionHandler=CollisionHandlerEvent()
+        # add catch-all handler
+        #base.entityCollisionHandler.addInPattern('entityCollision')
+
+        # handle entity collisions
+        # pass to entityCollided
+        base.accept('entityCollision', entityCollided)
+        # handle bullet collisions
         # accept this event and pass it to method bulletCollided
         base.accept('bulletCollision', bulletCollided)
 
@@ -56,11 +64,11 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m14", base, (0, 200, -60))
+        self.player = player("models/m14", base, (0, 200, -10))
         enemy=entity("models/man",base,(0, 210, -65))
-        enemy.loop("walk")
+        enemy.loop("firing")
         enemy.weaponNode=enemy.exposeJoint(None, "modelRoot", "weaponNode")
-        rifle(enemy,enemy.weaponNode)
+        carbine(enemy,enemy.weaponNode)
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")

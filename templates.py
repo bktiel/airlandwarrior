@@ -34,6 +34,8 @@ class entity(Actor):
         self.health=DEFAULT_HEALTH
         # speed
         self.speed=10
+        # gravity -- is touching ground?
+        self.isGrounded=False
         # creates actor object using constructor and parents to passed renderer
         self.loadModel(model)
         self.renderer = base.render
@@ -60,7 +62,7 @@ class entity(Actor):
         self.mainCol.addSolid(CollisionSphere(0, 0, self.height / 2, self.height / 2))
         # specify valid collisions for collision node
         self.mainCol.setFromCollideMask(CollideMask.bit(0))
-        self.mainCol.setIntoCollideMask(CollideMask.allOn())
+        self.mainCol.setIntoCollideMask(CollideMask.bit(1)) # accepts incoming objects with collideMask bit(1)
         # attach collision node to actor
         self.cNode = self.attachNewNode(self.mainCol)
         # show
@@ -69,6 +71,10 @@ class entity(Actor):
         base.cTrav.addCollider(self.cNode, base.pusher)
         # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
         base.pusher.addCollider(self.cNode, self, base.drive.node())
+
+
+        # add as client of entity collision handler
+        # base.cTrav.addCollider(self.cNode,base.entityCollisionHandler)
 
         #add to cleanup for deletion later
         base.cleanup.append(self)
@@ -233,6 +239,9 @@ class player(entity):
         #check if shooting, if so, shoot
         if self.keyMap['firing']:
             self.shoot()
+        #gravity - if not grounded, make it so
+        if not self.isGrounded:
+            self.setZ(self.getZ() - 50 * dt)
         return task.cont
 
     #procedure updateCamera
@@ -351,6 +360,7 @@ class bullet():
         self.mainCol=CollisionNode('cNode')
         #set up circular reference so collision volume knows parent
         self.mainCol.setPythonTag('owner',self)
+        self.mainCol.setIntoCollideMask(CollideMask.bit(1)) # send objects with intoCollideMask bit 1. Relates to most entities
         self.cNode=self.model.attachNewNode(self.mainCol)
         self.cNode.node().addSolid(cs)
         #create collider handler, if one doesn't already exist
@@ -420,6 +430,7 @@ class bullet():
         #clear collision
         self.mainCol.clearPythonTag("owner")
         #remove object
+        self.model.hide()
         self.model.removeNode()
 
 class weapon():
