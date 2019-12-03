@@ -53,6 +53,8 @@ class mainGame(ShowBase):
 
         #cleanup is list that saves items to destroy on mission end
         base.cleanup=[]
+        # entities is list of all entities in gamespace. Used for applying gravity etc
+        base.entities=[]
 
         # load environment
         self.makeEnviron("example")
@@ -68,13 +70,13 @@ class mainGame(ShowBase):
         self.player = player("models/m14", base, (0, 300, -10))
         firingEnemy=enemy=rifleman(base,(15,200,-20))
         #enemy.loop("firing")
-        enemy = rifleman(base, (20, 200, -20))
+        #enemy = rifleman(base, (20, 200, -20))
         #enemy.loop("walk")
         doppel=[]
         doppelNodes=[]
-        for i in range(10):
+        for i in range(5):
             offset=i*5
-            for i2 in range(6):
+            for i2 in range(5):
                 vOffset=i2*5
                 rifleman(base, (15 + offset, 200 + vOffset, -20))
 
@@ -88,6 +90,9 @@ class mainGame(ShowBase):
 
 
         #load gameplay logic
+
+        # update all entities
+        taskMgr.add(self.updateEntities, "updateEntitiesTask")
         self.playerScore=0
 
         self.spawnBases()
@@ -117,6 +122,7 @@ class mainGame(ShowBase):
         #base.render.setLight(base.render.attachNewNode(ambientLight))
         #base.render.setLight(base.render.attachNewNode(directionalLight))
 
+        # FROM PANDA3D DOCUMENTATION
         # Enable a 'light ramp' - this discretizes the lighting,
         # which is half of what makes a model look like a cartoon.
         # Light ramps only work if shader generation is enabled,
@@ -186,6 +192,17 @@ class mainGame(ShowBase):
         reticle.setTransparency(TransparencyAttrib.MAlpha)
         reticle.reparentTo(self.playerGUI)
 
+    #procedure updateEntities
+    #task applies logic to all registered entities every frame
+    def updateEntities(self,task):
+        for item in base.entities:
+            #call to overrideable updateState method
+            item.updateState()
+            #get distances between all objects
+
+        return task.cont
+
+
     #procedure spawnBases
     def spawnBases(self):
         '''
@@ -217,23 +234,34 @@ class mainGame(ShowBase):
 
 
     #procedure class deconstructor
-    def __del__(self):
+    def delete(self):
         '''
         Cleanly deletes all objects created by this scene
         '''
         #clear all lights
         base.render.clearLight()
 
+        #clear tasks created through course of gameloop
+        taskMgr.remove("updateEntitiesTask")
+
         #clear shader effect
         base.filters.delCartoonInk()
 
         #delete all items in cleanup
-        base.render.getChildren().detach()
         for garbage in base.cleanup:
-            #garbage=base.cleanup.pop()
-            garbage.remove_node()
+            # check if actor type, if so, cleanup
+            if isinstance(garbage,entity):
+                garbage.delete()
+            else:
+                garbage.removeNode()
+                del garbage
+        # clear entities list
+        base.entities.clear()
+        # clear cleanup list
+        base.cleanup.clear()
+        # last alibis
+        base.render.getChildren().detach()
 
-            del garbage
 
 
 

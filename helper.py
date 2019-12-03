@@ -124,6 +124,19 @@ def entityCollided(entry):
     #perp=perp.getPythonTag("owner")
     #victim=victim.getPythonTag("owner")
 
+#https://stackoverflow.com/a/481153
+#function: pointInCircle
+#Tuple,Float,Tuple->Boolean
+def pointInCircle(circlePos,circleRadius,point):
+    '''
+    Calculates whether given point is inside the circle defined by circlePos and circleRadius
+    '''
+    #Calculate square distance between center and point
+    #circlePos[0] and point[0] analogous to circlePos.x and point.x (assuming x,y,z tuples)
+    square_dist = (circlePos[0] - point[0]) ** 2 + (circlePos[1] - point[1]) ** 2
+    #return whether this distance is less than radius^2 (inside the circle)
+    return square_dist <= circleRadius ** 2
+
 #https://discourse.panda3d.org/t/convert-vector-to-hpr/2118/5
 #function: vectorToHPR()
 def vectorToHPR(vector):

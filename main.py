@@ -37,7 +37,6 @@ class MenuFSM(FSM):
         #set render filters up
         base.filters = CommonFilters(base.win, base.cam)
 
-
         #set window size
         winsize=WindowProperties()
         winsize.setSize(1024,600)
@@ -69,7 +68,7 @@ class MenuFSM(FSM):
     def exitGame(self):
         #delete mission
         if self.mission is not None:
-            del self.mission
+            self.mission.delete()
             self.mission = None
         #set mouse mode
         setMouseMode(0)

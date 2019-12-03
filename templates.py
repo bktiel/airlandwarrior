@@ -26,7 +26,6 @@ class entity(Actor):
         Actor.__init__(self)
         DEFAULT_HEALTH=50
 
-
         #reference base for later
         self.base = base
 
@@ -72,7 +71,8 @@ class entity(Actor):
         # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
         base.pusher.addCollider(self.cNode, self, base.drive.node())
 
-
+        # add to base.entities (since all allies/enemies created through this constructor, makes sense
+        base.entities.append(self)
         # add as client of entity collision handler
         # base.cTrav.addCollider(self.cNode,base.entityCollisionHandler)
 
@@ -84,15 +84,21 @@ class entity(Actor):
         self.mainCol.setPythonTag("owner",self)
 
         # TODO if no initial collision, enforce gravity until collision
-        taskMgr.add(self.doGravity, "entityGravity")
+        #taskMgr.add(self.doGravity, "entityGravity")
+
+    #procedure update
+    #do all actions that must be done for this object every frame - called from game loop
+    def updateState(self):
+        #by default do gravity for all entities
+        self.doGravity()
+
     #procedure entityGravity
     # drops entity by gravity if isGrounded is not true (set True by collision with ground)
-    def doGravity(self,task):
+    def doGravity(self):
         dt = globalClock.getDt()
         #gravity - if not grounded, make it so
         if not self.isGrounded:
             self.setZ(self.getZ() - 50 * dt)
-        return task.cont
 
     #procedure add Damage
     #float dmg -> decrement self.health
@@ -113,14 +119,17 @@ class entity(Actor):
         Class destructor
         Destroy an object cleanly from instance
         '''
+        #also remove from base.entities
+        base.entities.remove(self)
         #destroy actor
         self.hide()
         self.cleanup()
-        self.remove_node()
+        self.removeNode()
         #remove pythontag from collision
         self.mainCol.clearPythonTag("owner")
         #remove collision node from global collider
         base.cTrav.removeCollider(self.cNode)
+
 
 
 class player(entity):
@@ -332,8 +341,8 @@ class player(entity):
 
     #class deconstructor
     def __del__(self):
-        entity.__del__(self)
-        self.removeEpstein()
+        pass
+        #self.removeEpstein()
 
 
 class vehicle(player):
@@ -414,7 +423,7 @@ class bullet():
         if self.range <=0:
             #if range has ran out kill task and this object
             self.model.removeNode()
-            del self
+            self.delete()
             return task.done
 
         #otherwise proceed, move object and decrement range
