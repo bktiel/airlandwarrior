@@ -105,19 +105,18 @@ class entity(Actor):
         # TODO make pretty death
         self.health-=dmg
         if self.health <= 0:
-            self.hide()
-            del self
+            self.delete()
 
     #procedure class deconstructor
-    def __del__(self):
+    def delete(self):
         '''
         Class destructor
         Destroy an object cleanly from instance
         '''
         #destroy actor
         self.hide()
+        self.cleanup()
         self.remove_node()
-        self.delete()
         #remove pythontag from collision
         self.mainCol.clearPythonTag("owner")
         #remove collision node from global collider
@@ -353,6 +352,7 @@ class bullet():
         self.accuracy=accuracy
         self.direction=dir.normalized()
         self.damage=damage
+        self.tasks=[]
         self.speed=speed
         self.range=range
         self.model=base.loader.loadModel('models/bullet')
@@ -402,7 +402,7 @@ class bullet():
 
 
         #start task to move forward at speed
-        taskMgr.add(self.accelerate, "bulletAccelerateTask")
+        self.tasks.append(taskMgr.add(self.accelerate, "bulletAccelerateTask"))
 
     #task: accelerate
     def accelerate(self, task):
@@ -432,7 +432,10 @@ class bullet():
         return task.cont
 
     #class deconstructor
-    def __del__(self):
+    def delete(self):
+        #clear tasks
+        for task in self.tasks:
+            taskMgr.remove(task)
         #clear collision
         self.mainCol.clearPythonTag("owner")
         #remove object

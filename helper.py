@@ -94,14 +94,14 @@ def bulletCollided(entry):
     #try each for owner, generally if it's a collision that matters it'll have pythontag
     bullet=bullet.getPythonTag("owner")
     victim=victim.getPythonTag("owner")
+    if victim is not None:
+        print("collision!")
 
-    print("collision!")
-
-    #if it is of type entity or inherited cause damage
-    if isinstance(victim,entity):
-        victim.addDamage(bullet.damage)
-    #then destroy
-    del bullet
+        #if it is of type entity or inherited cause damage
+        if isinstance(victim,entity):
+            victim.addDamage(bullet.damage)
+        #then destroy
+        bullet.delete()
 
 def entityCollided(entry):
     perp=entry.getFromNodePath()
