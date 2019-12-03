@@ -84,6 +84,15 @@ class entity(Actor):
         self.mainCol.setPythonTag("owner",self)
 
         # TODO if no initial collision, enforce gravity until collision
+        taskMgr.add(self.doGravity, "entityGravity")
+    #procedure entityGravity
+    # drops entity by gravity if isGrounded is not true (set True by collision with ground)
+    def doGravity(self,task):
+        dt = globalClock.getDt()
+        #gravity - if not grounded, make it so
+        if not self.isGrounded:
+            self.setZ(self.getZ() - 50 * dt)
+        return task.cont
 
     #procedure add Damage
     #float dmg -> decrement self.health
@@ -239,9 +248,6 @@ class player(entity):
         #check if shooting, if so, shoot
         if self.keyMap['firing']:
             self.shoot()
-        #gravity - if not grounded, make it so
-        if not self.isGrounded:
-            self.setZ(self.getZ() - 50 * dt)
         return task.cont
 
     #procedure updateCamera

@@ -11,6 +11,7 @@ from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueu
 #custom classes
 from templates import player
 from definitions.weapons import *
+from definitions.characters import *
 from helper import *
 
 global base
@@ -64,11 +65,8 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m14", base, (0, 200, -10))
-        enemy=entity("models/man",base,(0, 210, -65))
-        enemy.loop("firing")
-        enemy.weaponNode=enemy.exposeJoint(None, "modelRoot", "weaponNode")
-        carbine(enemy,enemy.weaponNode)
+        self.player = player("models/m14", base, (0, 300, -10))
+        enemy=rifleman(base,(30,200,-20))
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")

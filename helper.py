@@ -114,8 +114,11 @@ def entityCollided(entry):
         return
 
     # if it is terrain, make grounded
-    if 'terrain' in victim.name and not perp.isGrounded:
-        perp.isGrounded=True
+    if 'terrain' in victim.name:
+        if not perp.isGrounded:
+            perp.isGrounded=True
+        return
+    else:
         return
     # try each for owner, generally if it's a collision that matters it'll have pythontag
     #perp=perp.getPythonTag("owner")
