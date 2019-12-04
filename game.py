@@ -17,6 +17,7 @@ from definitions.characters import *
 from helper import *
 
 global base
+global mission
 class mainGame(ShowBase):
     '''
     mainGame class is the actual instance of the panda application, inherits from ShowBase
@@ -32,7 +33,7 @@ class mainGame(ShowBase):
         #ShowBase.__init__(self)
         # set keybinds
         setKeybinds()
-
+        mission=self
         # handle collisions
         # collision traversal 'traverses' instances of collides
         base.cTrav = CollisionTraverser()   #switched to base
@@ -88,15 +89,16 @@ class mainGame(ShowBase):
                 self.flags.append(thisFlag)
 
         #spawn player
-        self.player = player("models/m15", base, self.team0Node.getPos())
+        newPos=(self.team0Node.getX(),self.team0Node.getY(),10)
+        self.player = player("models/m15", base, newPos)
         self.player.setScale(2)
-        firingEnemy=rifleman(base,(15,500,0),1)
-        #enemy.loop("firing")
-        enemy = rifleman(base, (20, 300, 0),1)
+        #firingEnemy=rifleman(base,(15,500,0),1)
+        #enemy = rifleman(base, (20, 300, 0),1)
 
-        team1Node = self.environment.find("**/team1")
-        enemy.setGoal(team1Node)
-
+        enemy=rifleman(base,self.team1Node.getPos(),1)
+        enemy.setGoal(self.team0Node)
+        friendly = rifleman(base, self.team0Node.getPos(), 0)
+        friendly.setGoal(self.flags[1])
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
@@ -200,7 +202,7 @@ class mainGame(ShowBase):
         reticle.setTransparency(TransparencyAttrib.MAlpha)
         reticle.reparentTo(self.playerGUI)
         self.playerGUI.HP= OnscreenText(text="HEALTH", pos=(0.95, 0.8),
-                                       scale=0.2, fg=(1, 0.5, 0.5, 1), align=TextNode.ACenter, mayChange=1)
+                                       scale=0.2, fg=(0, 0, 90, 1), align=TextNode.ACenter, mayChange=1)
         self.playerGUI.HP.reparentTo(self.playerGUI)
 
     #procedure updateEntities
@@ -214,6 +216,9 @@ class mainGame(ShowBase):
             #call to overrideable updateState method
             item.updateState()
 
+        #update player HP
+        if self.playerGUI.HP.text != str(self.player.health):
+            self.playerGUI.HP.text=str(self.player.health)
 
 
         return task.cont

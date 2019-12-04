@@ -7,6 +7,7 @@ from panda3d.core import WindowProperties, Quat, Vec3
 from templates import entity
 
 
+
 def rotateVector(vector,angle):
     '''
 

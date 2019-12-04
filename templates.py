@@ -9,10 +9,12 @@ from direct.task.TaskManagerGlobal import taskMgr
 import helper
 
 # all collision stuff
-from panda3d.core import CollisionNode, CollideMask, CollisionSphere, CollisionRay, BitMask32, CollisionHandlerQueue
+from panda3d.core import CollisionNode, CollideMask, CollisionSphere, CollisionRay, BitMask32, CollisionHandlerQueue, \
+    LVector3
 
 #presume use of global showbase object
 global base
+
 class entity(Actor):
     '''
     Base class for any characters
@@ -100,7 +102,8 @@ class entity(Actor):
     #do all actions that must be done for this object every frame - called from game loop
     def updateState(self):
         #by default do gravity for all entities
-        self.doGravity()
+        #self.doGravity()
+        return
 
     #procedure entityGravity
     # drops entity by gravity if isGrounded is not true (set True by collision with ground)
@@ -109,6 +112,7 @@ class entity(Actor):
         #gravity - if not grounded, make it so
         if not self.isGrounded:
             self.setZ(self.getZ() - 50 * dt)
+            return
         else:
             entries = []
             for entry in base.groundHandler.getEntries():
@@ -116,7 +120,7 @@ class entity(Actor):
                         or entry.getIntoNodePath().getParent() == self:
                     entries.append(entry)
             if (len(entries) > 0) and (entries[0].getIntoNode().getName() == "terrain"):
-                self.setZ(entries[0].getSurfacePoint(base.render).getZ()+1)
+                self.setZ(entries[0].getSurfacePoint(base.render).getZ()+2)
 
     #procedure add Damage
     #float dmg -> decrement self.health

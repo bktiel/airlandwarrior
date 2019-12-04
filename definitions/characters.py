@@ -18,7 +18,11 @@ class rifleman(entity):
     #mostly similar to entity
     def __init__(self,base,location,team):
         #assign what we know off the bat
-        self.model="models/rifleman"
+        #TODO chosen model currently depends on team - 0 is friendly, 1 is enemy
+        if team==0:
+            self.model = "models/friend_rifleman"
+        elif team==1:
+            self.model="models/rifleman"
         self.viewRange=200  #used by application to determine what character can 'see'
         self.contacts=[]    #stores nearby objects
         self.target=None    #stores target
@@ -33,7 +37,7 @@ class rifleman(entity):
 
         #add AI to this object
         #mass 60, movement force 0.05, max force 25
-        self.ai=AICharacter("ralph", self, 30, 20, 25)
+        self.ai=AICharacter(str(self), self, 30, 20, 25)
         base.AIworld.addAiChar(self.ai)
         self.AiBehaviors=self.ai.getAiBehaviors()
         #load navmesh
@@ -114,7 +118,7 @@ class rifleman(entity):
     def setGoal(self,goal):
         self.goal=goal
         # go to a specific area
-        self.AiBehaviors.pathFindTo(self.goal,"addPath")
+        self.AiBehaviors.pathFindTo(self.goal)
 
     #procedure move
     #if en route to a location, play walking animation
