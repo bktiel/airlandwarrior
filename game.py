@@ -3,12 +3,13 @@ from random import randint, randrange, uniform
 from direct.filter.CommonFilters import CommonFilters
 from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
 from direct.gui.DirectFrame import DirectFrame
+from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
     NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState, CollisionHandlerEvent
 # all collision stuff
 from panda3d.ai import AIWorld, AICharacter
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
-    CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
+    CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher, TextNode
 #custom classes
 from templates import player
 from definitions.weapons import *
@@ -198,6 +199,9 @@ class mainGame(ShowBase):
         reticle=OnscreenImage(image='images/reticle.png',scale=(0.5,1,.25))
         reticle.setTransparency(TransparencyAttrib.MAlpha)
         reticle.reparentTo(self.playerGUI)
+        self.playerGUI.HP= OnscreenText(text="HEALTH", pos=(0.95, 0.8),
+                                       scale=0.2, fg=(1, 0.5, 0.5, 1), align=TextNode.ACenter, mayChange=1)
+        self.playerGUI.HP.reparentTo(self.playerGUI)
 
     #procedure updateEntities
     #task applies logic to all registered entities every frame
