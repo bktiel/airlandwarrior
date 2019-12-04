@@ -6,6 +6,7 @@ from direct.gui.DirectFrame import DirectFrame
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
     NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState, CollisionHandlerEvent
 # all collision stuff
+from panda3d.ai import AIWorld, AICharacter
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher
 #custom classes
@@ -56,6 +57,9 @@ class mainGame(ShowBase):
         # entities is list of all entities in gamespace. Used for applying gravity etc
         base.entities=[]
 
+        #setup for AI
+        base.AIworld = AIWorld(base.render)
+
         # load environment
         self.makeEnviron("example")
 
@@ -67,14 +71,14 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m15", base, (0, 300, -10))
+        self.player = player("models/m15", base, (0, 300, 0))
         self.player.setScale(2)
-        firingEnemy=enemy=rifleman(base,(15,200,-20),1)
+        firingEnemy=rifleman(base,(15,500,0),1)
         #enemy.loop("firing")
-        enemy = rifleman(base, (20, 200, -20),1)
-        #enemy.loop("walk")
-        doppel=[]
-        doppelNodes=[]
+        enemy = rifleman(base, (20, 300, 0),1)
+
+        team1Node = self.environment.find("**/team1")
+        enemy.setGoal(team1Node)
 
 
 
@@ -82,8 +86,6 @@ class mainGame(ShowBase):
         print((locationJoint.getParent()))
 
         M1X_M2(self.player,locationJoint)
-        #gunModel=base.loader.loadModel("models/m1xMG")
-        #gunModel.reparentTo(locationJoint)
 
 
         #load gameplay logic
@@ -92,10 +94,10 @@ class mainGame(ShowBase):
         taskMgr.add(self.updateEntities, "updateEntitiesTask")
         self.playerScore=0
 
+
+
         self.spawnBases()
         self.spawnEnemies()
-
-
 
 
 
@@ -106,6 +108,7 @@ class mainGame(ShowBase):
         '''
         #load environment model and add to renderer
         self.environment = base.loader.loadModel("models/" + envModel)
+        base.navmesh="models/" +envModel+".navmesh.csv"
         self.environment.reparentTo(base.render)
         self.environment.setPos(0, 0, -10)
         #add to cleanup list
@@ -198,7 +201,8 @@ class mainGame(ShowBase):
                 continue
             #call to overrideable updateState method
             item.updateState()
-            #get distances between all objects
+
+        base.AIworld.update()
 
         return task.cont
 

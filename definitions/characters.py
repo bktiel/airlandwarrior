@@ -1,4 +1,5 @@
 from direct.task.TaskManagerGlobal import taskMgr
+from panda3d.ai import AICharacter
 from panda3d.core import CollisionSphere, CollisionNode, CollisionHandlerQueue, CollisionRay, CollisionCapsule, \
     CollisionBox, CollideMask
 
@@ -21,6 +22,7 @@ class rifleman(entity):
         self.viewRange=200  #used by application to determine what character can 'see'
         self.contacts=[]    #stores nearby objects
         self.target=None    #stores target
+        self.goal=None      #stores movement goal (if any)
         self.team=team
         #make call to parent with this model
         entity.__init__(self, self.model, base, location)
@@ -29,18 +31,13 @@ class rifleman(entity):
         self.weapon=carbine(self, self.weaponNode)
         self.pose("highReady",0)
 
-        #make collision sphere as 'radar' of sorts
-        #radarNode = CollisionNode('radar')
-        #self.radarQueue=CollisionHandlerQueue()
-        #cs=CollisionSphere(0,0,0,self.viewRange/2)
-        #radarNode.setFromCollideMask(CollideMask.bit(3))
-        #radarNode.setIntoCollideMask(CollideMask.bit(3))
-        #self.radar=self.attachNewNode(radarNode)
-        #self.radar.node().addSolid(cs)
-        #self.radar.show()
-        #base.cTrav.addCollider(self.radar,self.radarQueue)
-
-        #taskMgr.add(self.update,'riflemanUpdateTask')
+        #add AI to this object
+        #mass 60, movement force 0.05, max force 25
+        self.ai=AICharacter("ralph", self, 60, 0.05, 25)
+        base.AIworld.addAiChar(self.ai)
+        self.AiBehaviors=self.ai.getAiBehaviors()
+        #load navmesh
+        self.AiBehaviors.initPathFind(base.navmesh)
 
     #procedure: updateState
     #overrides entity.updateState
@@ -55,7 +52,6 @@ class rifleman(entity):
         #    and (victimParent != None):
         #        print(entry)
         entity.updateState(self)
-
         #clear current contacts to get new ones
         self.contacts.clear()
         #clear current target for the same reason
@@ -75,6 +71,8 @@ class rifleman(entity):
                 self.contacts.append(item)
         #if there are valid contacts
         if len(self.contacts)>0:
+            #TODO currently drop everything to shoot at something if in range
+            self.AiBehaviors.pauseAi("pathfollow")
             #sort to get nearest
             # built in panda function compareTo apparently does what I need
             # seems to rate similarity but works for my purposes
@@ -88,9 +86,16 @@ class rifleman(entity):
             #now if currentHPR doesn't match add H until it does
             self.setH(newVec[0])
             self.attack()
-        else:
-            #if not attacking anything, default to high ready
+        elif self.goal is not None:
+            self.setGoal(self.goal)
+        elif self.goal is None:
+            #if not moving or attacking anything, default to high ready
             self.pose("highReady", 0)
+
+        #handle movement if there is a goal and not shooting anyone
+        if self.goal is not None and self.target is None:
+
+            self.move()
 
     #procedure rifleman.attack
     #act of rifleman shooting. While shooting, can't do anything else
@@ -101,7 +106,26 @@ class rifleman(entity):
                 self.play("reload")
         else:
             if self.getCurrentAnim() != "firing":
-                self.loop("firing", restart=0)
+                self.loop("firing")
+
+    #procedure setGoal
+    #sets a location target for this character to move to
+    def setGoal(self,goal):
+        self.goal=goal
+        # go to a specific area
+        self.AiBehaviors.pathFindTo(self.goal)
+
+    #procedure move
+    #if en route to a location, play walking animation
+    def move(self):
+        dt = globalClock.getDt()
+        self.setZ(self.getZ() - 50 * dt)
+
+        if self.getCurrentAnim() != "walk":
+            self.loop("walk")
+
+
+
 
 
 
