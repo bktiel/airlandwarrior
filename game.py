@@ -1,3 +1,4 @@
+import random
 from random import randint, randrange, uniform
 
 from direct.filter.CommonFilters import CommonFilters
@@ -34,6 +35,7 @@ class mainGame(ShowBase):
         # set keybinds
         setKeybinds()
         mission=self
+        self.nextValidSpawn=0
         # handle collisions
         # collision traversal 'traverses' instances of collides
         base.cTrav = CollisionTraverser()   #switched to base
@@ -53,6 +55,9 @@ class mainGame(ShowBase):
 
         # self.render references base.render
         self.render=base.render
+
+        mission.CAPTURE_TIME=15 #time to capture single flag
+        mission.CAPTURE_RADIUS=300 #radius that needs to be controlled to cap flag
 
         #cleanup is list that saves items to destroy on mission end
         base.cleanup=[]
@@ -81,22 +86,24 @@ class mainGame(ShowBase):
 
         #for now will attempt to load up to 12 flags, and reject entries that don't work
         #TODO: dynamically load based on amount of flag nodes found
+        #also may change capture time depending on flag
         self.flags=[]
         for i in range (12):
             thisFlag=self.environment.find("**/flag"+str(i))
             #only append if found successfully
             if thisFlag.error_type == 0:
                 self.flags.append(thisFlag)
+                thisFlag.setPythonTag('lastCapture',None) #last capture attempt
+                thisFlag.setPythonTag('lastCaptureTeam',None)   #last team that tried to cap
 
         #spawn player
-
-        self.player = player("models/m15", base, self.team0Node.getPos())
+        newPos=(self.team0Node.getX(),self.team0Node.getY(),self.team0BaseNode.getZ()+20)
+        self.player = player("models/m15", base, newPos)
         self.player.setScale(2)
         #firingEnemy=rifleman(base,(15,500,0),1)
         #enemy = rifleman(base, (20, 300, 0),1)
 
-        enemy=rifleman(base,self.team1Node.getPos(),1)
-        enemy.setGoal(self.team0Node)
+
         friendly = rifleman(base, self.team0Node.getPos(), 0)
         friendly.setGoal(self.flags[1])
 
@@ -209,6 +216,7 @@ class mainGame(ShowBase):
     #task applies logic to all registered entities every frame
     def updateEntities(self,task):
         base.AIworld.update()
+        timeNow = globalClock.getFrameTime()
         for item in base.entities:
             if item.is_empty():
                 base.entities.remove(item)
@@ -219,6 +227,10 @@ class mainGame(ShowBase):
         #update player HP
         if self.playerGUI.HP.text != str(self.player.health):
             self.playerGUI.HP.text=str(self.player.health)
+
+        #spawn entities
+        if timeNow>=self.nextValidSpawn:
+            self.spawnEnemies()
 
 
         return task.cont
@@ -243,18 +255,74 @@ class mainGame(ShowBase):
         baseNode.setH(self.team1BaseNode.getH())
 
         #spawn bases on flags
-        for flag in self.flags:
+        for i,flag in enumerate(self.flags):
             newBase=base.loader.loadModel("models/outpost")
             newBase.reparentTo(base.render)
             newBase.setScale(flag.getScale())
             newBase.setPos(flag.getPos())
+
+            #set initial team of each flag
+            #flag[i].setPythonTag('team', None)
 
     #procedure spawnEnemies
     def spawnEnemies(self):
         '''
         Every few ticks generate new enemies from hostile bases
         '''
-        pass
+        timeNow = globalClock.getFrameTime()
+        self.nextValidSpawn=timeNow+random.randint(4,11)
+        #actually spawns entities for both sides from respective HQs
+        if len(base.entities)<24:
+            #randomly choose which team to spawn more for
+            team=random.randint(0,1)
+            if team == 0:
+                friendly = rifleman(base, self.team0Node.getPos(), 0)
+                friendly.setGoal(self.flags[random.randint(0,2)])
+            else:
+                enemy = rifleman(base, self.team1Node.getPos(), 1)
+                enemy.setGoal(self.flags[random.randint(0,2)])
+
+
+    #procedure checkOutposts
+    def checkOutposts(self):
+        '''
+        Checks all outposts for entities and starts conversion process
+        '''
+        #check all flags for capture state
+        #there must be objects of team # exclusively in capture zone for capture_time
+        for flag in self.flags:
+            isCapturing=True
+            lastTeam=None
+            lastCapture=flag.getPythonTag('lastCapture')
+            lastCaptureTeam=flag.getPythonTag('lastCaptureTeam')
+            flagTeam=flag.getPythonTag('team')
+            # check for base.entities and see if any are in the circle created by capture radius
+            for troop in base.entities:
+                if pointInCircle(flag.getPos(),flag.capture_radius,troop.getPos()):
+                    if (lastTeam != None) and lastTeam !=troop.team:
+                        #if multiple teams in zone all capture attempts aborted
+                        isCapturing=False
+                        flag.setPythonTag('lastCapture',None)
+                        flag.setPythonTag('lastCaptureTeam',None)
+                        break
+                    else:
+                        #otherwise add to capturezone
+                        lastTeam=troop.team
+            #if still isCapturing at this point all troops in the capture zone are on the same team
+            #first check if capture attempt already in progress
+            if isCapturing and flagTeam != lastTeam:
+                timeNow = globalClock.getFrameTime()
+                # check if enough time has elapsed to confer ownership
+                if (lastCapture != None and lastCaptureTeam == lastTeam) \
+                        and timeNow >= (lastCapture+flag.capture_time):
+                    #if all these criteria true, give flag to team
+                    flag.setPythonTag('team',lastTeam)
+                    flag.setPythonTag('lastCapture', None)
+                    flag.setPythonTag('lastCaptureTeam', None)
+                # if flag.lastCapture IS none, start a capture
+                elif flag.lastCaptureTeam == None:
+                    flag.setPythonTag('lastCapture', lastTeam)
+                    flag.setPythonTag('lastCaptureTeam', timeNow)
     #procedure captureBase
     def captureBase(self):
         '''
@@ -276,6 +344,7 @@ class mainGame(ShowBase):
         '''
         Cleanly deletes all objects created by this scene
         '''
+        self.playerGUI.removeNode()
         #clear all lights
         base.render.clearLight()
 
