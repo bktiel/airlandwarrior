@@ -171,6 +171,8 @@ class player(entity):
         # camera init
         self.setPlayer()
 
+        self.health=600
+
         # initial loadout
         self.weapons=[]
         # store player's selected weapon

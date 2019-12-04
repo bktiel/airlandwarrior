@@ -88,12 +88,20 @@ class rifleman(entity):
             #now if currentHPR doesn't match add H until it does
             self.setH(newVec[0])
             self.attack()
+        else:
+            #if not attacking anything, default to high ready
+            self.pose("highReady", 0)
 
     #procedure rifleman.attack
     #act of rifleman shooting. While shooting, can't do anything else
     def attack(self):
-        self.loop("firing",restart=0)
         self.weapon.fire()
+        if self.weapon.isReloading != False:
+            if self.getCurrentAnim() != "reload":
+                self.play("reload")
+        else:
+            if self.getCurrentAnim() != "firing":
+                self.loop("firing", restart=0)
 
 
 

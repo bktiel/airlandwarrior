@@ -193,6 +193,9 @@ class mainGame(ShowBase):
     #task applies logic to all registered entities every frame
     def updateEntities(self,task):
         for item in base.entities:
+            if item.is_empty():
+                base.entities.remove(item)
+                continue
             #call to overrideable updateState method
             item.updateState()
             #get distances between all objects

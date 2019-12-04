@@ -99,15 +99,20 @@ class carbine(weapon):
         self.owner=owner
         self.lastFired=0
         # time that must pass between shots
-        self.fireRate=0.1
+        self.fireRate=0.15
         self.ammo={
-            'magSize':5,
+            'magSize':10,
             'reserve':20,
-            'currentMag':5
+            'currentMag':10
         }
         #load model and render
         self.model = base.loader.loadModel("models/gun")
         self.model.reparentTo(joint)
+
+        #should make ai more manageable
+        self.isReloading = False
+        self.reloadTime = 3
+
         #for offset on firing solution
         min,max=self.model.getTightBounds()
         self.length=abs(max.getY()-min.getY())+1
@@ -115,6 +120,17 @@ class carbine(weapon):
 
     def fire(self):
         timeNow = globalClock.getFrameTime()
+        #small check for reloading condition
+
+        if self.isReloading != False:
+            #if reloading is not false, is a time firing kosher again. check and see if past
+            if timeNow > self.isReloading:
+                self.isReloading=False
+                #also fill mag
+                self.ammo['currentMag']=self.ammo['magSize']
+            else:
+                #otherwise return with nothing to show for it
+                return
         if (timeNow - self.lastFired) < self.fireRate:
             # if difference is SMALLER than firerate, don't do anything - exit
             return
@@ -135,3 +151,14 @@ class carbine(weapon):
         )
         #record in lastFired
         self.lastFired=timeNow
+        #decrement ammo
+        self.ammo['currentMag']-=1
+        #if this makes currentMag 0, reload
+        if self.ammo['currentMag']<1:
+            self.reload(timeNow)
+
+    #procedure reload
+    #really just stops shooting for self.reloadTime
+    def reload(self,timeNow):
+        #at this time firing may resume
+        self.isReloading=timeNow+self.reloadTime
