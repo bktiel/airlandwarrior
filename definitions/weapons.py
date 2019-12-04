@@ -101,9 +101,9 @@ class carbine(weapon):
         # time that must pass between shots
         self.fireRate=0.15
         self.ammo={
-            'magSize':10,
+            'magSize':20,
             'reserve':20,
-            'currentMag':10
+            'currentMag':20
         }
         #load model and render
         self.model = base.loader.loadModel("models/gun")

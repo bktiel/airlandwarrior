@@ -71,15 +71,23 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        team0Node = self.environment.find("**/team0")
-        team0BaseNode = self.environment.find("**/team0base")
-        baseNode=base.loader.loadModel("models/hq")
-        baseNode.reparentTo(base.render)
-        baseNode.setPos(team0BaseNode.getPos())
-        baseNode.setScale(4.5)
+        #find nodes in environment and store on game object
+        self.team0Node = self.environment.find("**/team0")
+        self.team0BaseNode = self.environment.find("**/team0base")
+        self.team1Node = self.environment.find("**/team1")
+        self.team1BaseNode = self.environment.find("**/team1base")
 
+        #for now will attempt to load up to 12 flags, and reject entries that don't work
+        #TODO: dynamically load based on amount of flag nodes found
+        self.flags=[]
+        for i in range (12):
+            thisFlag=self.environment.find("**/flag"+str(i))
+            #only append if found successfully
+            if thisFlag.error_type == 0:
+                self.flags.append(thisFlag)
 
-        self.player = player("models/m15", base, team0Node.getPos())
+        #spawn player
+        self.player = player("models/m15", base, self.team0Node.getPos())
         self.player.setScale(2)
         firingEnemy=rifleman(base,(15,500,0),1)
         #enemy.loop("firing")
@@ -122,14 +130,6 @@ class mainGame(ShowBase):
         #add to cleanup list
         base.cleanup.append(self.environment)
 
-        #ambientLight = AmbientLight("ambientLight")
-        #ambientLight.setColor((.3, .3, .3, 1))
-        #directionalLight = DirectionalLight("directionalLight")
-        #directionalLight.setColor((1, 1, 1, 1))
-        #directionalLight.setSpecularColor((1, 1, 1, 1))
-        #base.render.setLight(base.render.attachNewNode(ambientLight))
-        #base.render.setLight(base.render.attachNewNode(directionalLight))
-
         # FROM PANDA3D DOCUMENTATION
         # Enable a 'light ramp' - this discretizes the lighting,
         # which is half of what makes a model look like a cartoon.
@@ -148,7 +148,6 @@ class mainGame(ShowBase):
             print("not good enough GPU")
             exit()
         base.accept("v", base.bufferViewer.toggleEnable)
-        #plightnode = DirectionalLight("point light")
         plightnode = PointLight("point light")
         plightnode.setAttenuation((1, 0, 0))
         plight = base.render.attachNewNode(plightnode)
@@ -222,7 +221,24 @@ class mainGame(ShowBase):
         Create bases/outposts across the map based on environment mesh nodes
         Store in self.bases list
         '''
-        pass
+        #place HQs
+        baseNode = base.loader.loadModel("models/hq")
+        baseNode.reparentTo(base.render)
+        baseNode.setPos(self.team0BaseNode.getPos())
+        baseNode.setScale(4.5)
+
+        baseNode = base.loader.loadModel("models/hq")
+        baseNode.reparentTo(base.render)
+        baseNode.setPos(self.team1BaseNode.getPos())
+        baseNode.setScale(4.5)
+        baseNode.setH(self.team1BaseNode.getH())
+
+        #spawn bases on flags
+        for flag in self.flags:
+            newBase=base.loader.loadModel("models/outpost")
+            newBase.reparentTo(base.render)
+            newBase.setScale(flag.getScale())
+            newBase.setPos(flag.getPos())
 
     #procedure spawnEnemies
     def spawnEnemies(self):
