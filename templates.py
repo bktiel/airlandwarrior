@@ -1,13 +1,15 @@
 #definitions for actors
+
+
 from direct.showbase.ShowBase import ShowBase, CollisionHandlerEvent, LVector3f, Vec3, NodePath
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.actor.Actor import Actor
 from direct.task.TaskManagerGlobal import taskMgr
+
 import helper
+
 # all collision stuff
-from panda3d.core import CollisionNode, CollideMask, CollisionSphere
-
-
+from panda3d.core import CollisionNode, CollideMask, CollisionSphere, CollisionRay, BitMask32, CollisionHandlerQueue
 
 #presume use of global showbase object
 global base
@@ -50,13 +52,20 @@ class entity(Actor):
         self.width, self.length, self.height = self.bounds[0], self.bounds[1], self.bounds[2]
 
 
-        #create node at front of actor to track rotation
-        #self.front = NodePath(PandaNode("front"))
-        #self.front.reparentTo(self)
-        #self.front.setY(self.getY()+2)
-
         # COLLISION PROPERTIES
         # create collision ray that is height of model pointing down (will detect ground collisions)
+
+        self.groundRay = CollisionRay()
+        self.groundRay.setOrigin(0,0,1000)
+        self.groundRay.setDirection(0,0,-1)
+        self.groundCol = CollisionNode('groundRay')
+        self.groundCol.addSolid(self.groundRay)
+        self.groundCol.setFromCollideMask(BitMask32.bit(0))
+        self.groundCol.setIntoCollideMask(BitMask32.allOff())
+        self.groundColNode = self.attachNewNode(self.groundCol)
+        base.cTrav.addCollider(self.groundColNode, base.groundHandler)
+
+        #and another one for everything else
         self.mainCol = CollisionNode('actorCollision' + str(id(self)))
         # create collision sphere as solid for this collision node
         self.mainCol.addSolid(CollisionSphere(0, 0, self.height / 2, self.height / 2))
@@ -100,6 +109,14 @@ class entity(Actor):
         #gravity - if not grounded, make it so
         if not self.isGrounded:
             self.setZ(self.getZ() - 50 * dt)
+        else:
+            entries = []
+            for entry in base.groundHandler.getEntries():
+                if entry.getFromNodePath().getParent() == self \
+                        or entry.getIntoNodePath().getParent() == self:
+                    entries.append(entry)
+            if (len(entries) > 0) and (entries[0].getIntoNode().getName() == "terrain"):
+                self.setZ(entries[0].getSurfacePoint(base.render).getZ()+1)
 
     #procedure add Damage
     #float dmg -> decrement self.health
@@ -261,7 +278,7 @@ class player(entity):
                 self.neck.setR(self.neck.getR() + self.turnSpeed * dt)
 
             # lastly if attempting move simulate gravity as well
-            self.setZ(self.getZ() - 50 * dt)
+            #self.setZ(self.getZ() - 50 * dt)
         else:
             self.isMobile=False
             #otherwise stop walk animation

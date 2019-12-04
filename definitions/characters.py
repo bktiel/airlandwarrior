@@ -33,7 +33,7 @@ class rifleman(entity):
 
         #add AI to this object
         #mass 60, movement force 0.05, max force 25
-        self.ai=AICharacter("ralph", self, 60, 0.05, 25)
+        self.ai=AICharacter("ralph", self, 30, 20, 25)
         base.AIworld.addAiChar(self.ai)
         self.AiBehaviors=self.ai.getAiBehaviors()
         #load navmesh
@@ -52,6 +52,8 @@ class rifleman(entity):
         #    and (victimParent != None):
         #        print(entry)
         entity.updateState(self)
+        #rifleman should always stand upright.
+        self.setP(0)
         #clear current contacts to get new ones
         self.contacts.clear()
         #clear current target for the same reason
@@ -94,7 +96,6 @@ class rifleman(entity):
 
         #handle movement if there is a goal and not shooting anyone
         if self.goal is not None and self.target is None:
-
             self.move()
 
     #procedure rifleman.attack
@@ -113,14 +114,19 @@ class rifleman(entity):
     def setGoal(self,goal):
         self.goal=goal
         # go to a specific area
-        self.AiBehaviors.pathFindTo(self.goal)
+        self.AiBehaviors.pathFindTo(self.goal,"addPath")
 
     #procedure move
     #if en route to a location, play walking animation
     def move(self):
+        #if completed set to none, reset animations
+        if self.AiBehaviors.behaviorStatus("pathfollow") == "done":
+            self.goal=None
+            self.pose("highReady", 0)
+            return
         dt = globalClock.getDt()
-        self.setZ(self.getZ() - 50 * dt)
-
+        #need to rotate player by 180 degs to make work
+        self.setH((self.getH()+180)%180)
         if self.getCurrentAnim() != "walk":
             self.loop("walk")
 

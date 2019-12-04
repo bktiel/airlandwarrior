@@ -38,7 +38,7 @@ class mainGame(ShowBase):
         base.pusher = CollisionHandlerPusher()  #switched to base
 
         base.pusher.addInPattern('entityCollision')
-        #base.entityCollisionHandler=CollisionHandlerEvent()
+        base.groundHandler=CollisionHandlerQueue()
         # add catch-all handler
         #base.entityCollisionHandler.addInPattern('entityCollision')
 
@@ -71,7 +71,15 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m15", base, (0, 300, 0))
+        team0Node = self.environment.find("**/team0")
+        team0BaseNode = self.environment.find("**/team0base")
+        baseNode=base.loader.loadModel("models/hq")
+        baseNode.reparentTo(base.render)
+        baseNode.setPos(team0BaseNode.getPos())
+        baseNode.setScale(4.5)
+
+
+        self.player = player("models/m15", base, team0Node.getPos())
         self.player.setScale(2)
         firingEnemy=rifleman(base,(15,500,0),1)
         #enemy.loop("firing")
@@ -195,6 +203,7 @@ class mainGame(ShowBase):
     #procedure updateEntities
     #task applies logic to all registered entities every frame
     def updateEntities(self,task):
+        base.AIworld.update()
         for item in base.entities:
             if item.is_empty():
                 base.entities.remove(item)
@@ -202,7 +211,7 @@ class mainGame(ShowBase):
             #call to overrideable updateState method
             item.updateState()
 
-        base.AIworld.update()
+
 
         return task.cont
 
