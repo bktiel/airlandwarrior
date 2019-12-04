@@ -71,7 +71,7 @@ class M1X_M2(weapon):
 
         #start pos should always be self.length from pos. Will experiment with
         # https://discourse.panda3d.org/t/calculating-forward-vector-from-hpr/6261/2
-        startPos=base.render.getRelativePoint(self.model,Vec3(0,self.length,-self.height/2))
+        startPos=base.render.getRelativePoint(self.model,Vec3(0,-self.length,-self.height/2))
 
         #create projectile at set offset in front of weapon
         bullet(
@@ -96,5 +96,42 @@ class TOWPod(weapon):
 class carbine(weapon):
     #constructor
     def __init__(self, owner, joint):
+        self.owner=owner
+        self.lastFired=0
+        # time that must pass between shots
+        self.fireRate=0.1
+        self.ammo={
+            'magSize':5,
+            'reserve':20,
+            'currentMag':5
+        }
+        #load model and render
         self.model = base.loader.loadModel("models/gun")
         self.model.reparentTo(joint)
+        #for offset on firing solution
+        min,max=self.model.getTightBounds()
+        self.length=abs(max.getY()-min.getY())+1
+        self.height = abs(max.getZ() - min.getZ()) + 1
+
+    def fire(self):
+        timeNow = globalClock.getFrameTime()
+        if (timeNow - self.lastFired) < self.fireRate:
+            # if difference is SMALLER than firerate, don't do anything - exit
+            return
+        #targetVector will be owner's target if AI
+
+        #targetVector = base.render.getRelativeVector(self.owner.target, Vec3(0, 1, 0))
+        startPos=base.render.getRelativePoint(self.model,Vec3(0,self.length,-self.height/2))
+        targetVector=(self.owner.target.getPos() - startPos)
+        targetVector.normalize()
+
+        #create projectile at set offset in front of weapon
+        bullet(
+            startPos,
+            targetVector,
+            3,
+            480,
+            400
+        )
+        #record in lastFired
+        self.lastFired=timeNow

@@ -67,18 +67,15 @@ class mainGame(ShowBase):
         base.disableMouse()
         setMouseMode(1)
 
-        self.player = player("models/m14", base, (0, 300, -10))
-        firingEnemy=enemy=rifleman(base,(15,200,-20))
+        self.player = player("models/m15", base, (0, 300, -10))
+        self.player.setScale(2)
+        firingEnemy=enemy=rifleman(base,(15,200,-20),1)
         #enemy.loop("firing")
-        #enemy = rifleman(base, (20, 200, -20))
+        enemy = rifleman(base, (20, 200, -20),1)
         #enemy.loop("walk")
         doppel=[]
         doppelNodes=[]
-        for i in range(5):
-            offset=i*5
-            for i2 in range(5):
-                vOffset=i2*5
-                rifleman(base, (15 + offset, 200 + vOffset, -20))
+
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
@@ -251,7 +248,7 @@ class mainGame(ShowBase):
         for garbage in base.cleanup:
             # check if actor type, if so, cleanup
             if isinstance(garbage,entity):
-                garbage.delete()
+                continue
             else:
                 garbage.removeNode()
                 del garbage

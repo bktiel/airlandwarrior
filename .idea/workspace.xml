@@ -4,9 +4,9 @@
     <list default="true" id="ff554fde-8aa3-4eb0-9e69-f0e7e13d051f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/definitions/characters.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/characters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/definitions/weapons.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/weapons.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/game.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/m14.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/m14.egg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/templates.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -159,7 +159,7 @@
       <workItem from="1574892025657" duration="69528000" />
       <workItem from="1575317947932" duration="22463000" />
       <workItem from="1575380744902" duration="12494000" />
-      <workItem from="1575404697191" duration="7025000" />
+      <workItem from="1575404697191" duration="17114000" />
     </task>
     <servers />
   </component>
@@ -181,6 +181,18 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/definitions/characters.py</url>
+          <line>66</line>
+          <option name="timeStamp" value="58" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/game.py</url>
+          <line>247</line>
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -191,14 +203,15 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="square_dist &lt;= circleRadius ** 2" language="Python" />
+        <watch expression="self.getH()-newVec[0]" language="Python" />
         <watch expression="self.getPos()" language="Python" />
-        <watch expression="circlePos[1] - point[1]" language="Python" />
+        <watch expression="newVec" language="Python" />
+        <watch expression="-5&gt;diff&gt;5" language="Python" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575414969214" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575427080851" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$game.coverage" NAME="game Coverage Results" MODIFIED="1574027271933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1575403044615" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

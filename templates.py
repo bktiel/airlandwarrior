@@ -33,6 +33,7 @@ class entity(Actor):
         self.health=DEFAULT_HEALTH
         # speed
         self.speed=10
+        self.turnSpeed=5
         # gravity -- is touching ground?
         self.isGrounded=False
         # creates actor object using constructor and parents to passed renderer
@@ -120,15 +121,21 @@ class entity(Actor):
         Destroy an object cleanly from instance
         '''
         #also remove from base.entities
-        base.entities.remove(self)
+        if self in base.entities:
+            base.entities.remove(self)
         #destroy actor
         self.hide()
         self.cleanup()
-        self.removeNode()
+        #self.detachNode()
         #remove pythontag from collision
         self.mainCol.clearPythonTag("owner")
         #remove collision node from global collider
         base.cTrav.removeCollider(self.cNode)
+        del self
+
+    #class deconstructor
+    def __del__(self):
+        self.removeNode()
 
 
 
@@ -151,7 +158,8 @@ class player(entity):
         entity.__init__(self, model, base, pos)
         # self turnSpeed and Speed
         self.speed=70
-        self.turnSpeed=60
+        self.turnSpeed=120
+        self.team=0
 
         # extra player specific stuff
         # store mouseX, mouseY
@@ -167,7 +175,8 @@ class player(entity):
         self.weapons=[]
         # store player's selected weapon
         self.selectedWeapon=None
-        taskMgr.add(self.move,"playerMoveTask")
+        #taskMgr.add(self.move,"playerMoveTask")
+        base.entities.append(self)
 
         #test values for m1X (no other playertypes at this time)
         #-10 prevents from looking too high (clips into pelvis)
@@ -206,12 +215,14 @@ class player(entity):
             self.headgun=self.exposeJoint(None, "modelRoot", "headgun")
 
     #task move
-    def move(self, task):
+    def updateState(self):
         '''
         Called every frame - if w,a,s,d pressed, move self accordingly
         If mouse location different and not in a menu, rotate actor by delta radians
         Adjust camera to keep up with move
         '''
+        # call parent
+        entity.updateState(self)
         # get time since last frame (multiply by distance to get actual distance to displace
         dt = globalClock.getDt()
 
@@ -256,7 +267,7 @@ class player(entity):
         #check if shooting, if so, shoot
         if self.keyMap['firing']:
             self.shoot()
-        return task.cont
+        #return task.cont
 
     #procedure updateCamera
     # none -> none
@@ -345,6 +356,7 @@ class player(entity):
         #self.removeEpstein()
 
 
+
 class vehicle(player):
     '''
     Base class for vehicles
@@ -422,7 +434,6 @@ class bullet():
         #check to make sure not 0
         if self.range <=0:
             #if range has ran out kill task and this object
-            self.model.removeNode()
             self.delete()
             return task.done
 
@@ -442,13 +453,13 @@ class bullet():
 
     #class deconstructor
     def delete(self):
+        self.model.hide()
         #clear tasks
         for task in self.tasks:
             taskMgr.remove(task)
         #clear collision
         self.mainCol.clearPythonTag("owner")
         #remove object
-        self.model.hide()
         self.model.removeNode()
 
 class weapon():
