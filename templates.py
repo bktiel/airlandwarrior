@@ -102,7 +102,7 @@ class entity(Actor):
     #do all actions that must be done for this object every frame - called from game loop
     def updateState(self):
         #by default do gravity for all entities
-        #self.doGravity()
+        self.doGravity()
         return
 
     #procedure entityGravity

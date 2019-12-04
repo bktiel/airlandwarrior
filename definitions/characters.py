@@ -37,7 +37,7 @@ class rifleman(entity):
 
         #add AI to this object
         #mass 60, movement force 0.05, max force 25
-        self.ai=AICharacter(str(self), self, 30, 20, 25)
+        self.ai=AICharacter(str(self), self, 30, 0.05, 25)
         base.AIworld.addAiChar(self.ai)
         self.AiBehaviors=self.ai.getAiBehaviors()
         #load navmesh

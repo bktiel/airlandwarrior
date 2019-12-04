@@ -89,8 +89,8 @@ class mainGame(ShowBase):
                 self.flags.append(thisFlag)
 
         #spawn player
-        newPos=(self.team0Node.getX(),self.team0Node.getY(),10)
-        self.player = player("models/m15", base, newPos)
+
+        self.player = player("models/m15", base, self.team0Node.getPos())
         self.player.setScale(2)
         #firingEnemy=rifleman(base,(15,500,0),1)
         #enemy = rifleman(base, (20, 300, 0),1)
