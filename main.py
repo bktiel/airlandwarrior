@@ -47,6 +47,7 @@ class MenuFSM(FSM):
         self.mission=None
         #request first menu, and then run showBase (starts app)
         self.request('Menu')
+        base.fsm=self
         base.run()
     def enterMenu(self):
         #listen for Menu Start and request Game state if it is sent
@@ -65,6 +66,7 @@ class MenuFSM(FSM):
             self.mission=mainGame()
         #accept ESC to go back to menu
         self.accept("escape", self.request,['Menu'])
+        self.accept("Leave-Game", self.request, ['Menu'])
     def exitGame(self):
         #delete mission
         if self.mission is not None:
@@ -93,7 +95,7 @@ class mainMenu():
 
 
         # Add button
-        self.makeButton("START DEMO",0,["Menu-Start"])
+        self.makeButton("START",0,["Menu-Start"])
         #b = DirectButton(text=("OK", "click!", "rolling over", "disabled"), scale=.05, command=base.messenger.send, extraArgs=["Menu-Start"])
 
         #more buttons and objects to come for this GUI
@@ -128,4 +130,5 @@ class mainMenu():
 
 # create instance of state manager
 # constructor handles the rest
+global myFSM
 myFSM = MenuFSM()

@@ -52,15 +52,12 @@ class rifleman(entity):
     #overrides entity.updateState
     #things that need to be executed every frame for this character object
     def updateState(self):
-        #first get all collisions from radarQueue handler
-        #for entry in self.radarQueue.getEntries():
-        #    victim=entry.getIntoNodePath()
-        #    victimParent=victim.getPythonTag('owner')
-        #    if 'terrain' not in victim.name \
-        #    and (victim.parent != self.radar.parent)\
-        #    and (victimParent != None):
-        #        print(entry)
 
+        # if health below 0 is dead
+        if self.health<=0:
+            self.AiBehaviors.removeAi("pathfollow")
+            self.mainCol.clearSolids()
+            return
         entity.updateState(self)
         timeNow = globalClock.getFrameTime()
         #rifleman should always stand upright.

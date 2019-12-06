@@ -98,11 +98,9 @@ def bulletCollided(entry):
     bullet=bullet.getPythonTag("owner")
     victim=victim.getPythonTag("owner")
     if victim is not None and bullet is not None:
-        print("collision!")
-
         #if it is of type entity or inherited cause damage
         if isinstance(victim,entity):
-            victim.addDamage(bullet.damage)
+            victim.addDamage(bullet.sender,bullet.damage)
         #then destroy
         bullet.delete()
 

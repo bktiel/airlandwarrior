@@ -75,9 +75,10 @@ class M1X_M2(weapon):
 
         #create projectile at set offset in front of weapon
         bullet(
+            self,
             startPos,
             targetVector,
-            3,
+            6,
             480,
             400
         )
@@ -147,6 +148,7 @@ class carbine(weapon):
 
         #create projectile at set offset in front of weapon
         bullet(
+            self,
             startPos,
             targetVector,
             3,

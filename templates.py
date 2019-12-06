@@ -1,6 +1,5 @@
 #definitions for actors
-
-
+from direct.showbase.MessengerGlobal import messenger
 from direct.showbase.ShowBase import ShowBase, CollisionHandlerEvent, LVector3f, Vec3, NodePath
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.actor.Actor import Actor
@@ -35,6 +34,8 @@ class entity(Actor):
 
         # set health
         self.health=DEFAULT_HEALTH
+        self.damagedSound=base.loader.loadSfx("sounds/oof.ogg")
+
         # speed
         self.speed=10
         self.turnSpeed=5
@@ -124,16 +125,44 @@ class entity(Actor):
 
     #procedure add Damage
     #float dmg -> decrement self.health
-    def addDamage(self, dmg):
+    def addDamage(self, sender, dmg):
         '''
         Adds a specified amount to this entity
         Can be negative or positive
         If self.health < 0 call delete self
         '''
+        #get shooter for scoring purposes
+        shooter=sender.owner
         # TODO make pretty death
         self.health-=dmg
+        if self.damagedSound is not None:
+            self.damagedSound.play()
         if self.health <= 0:
+            #if shooter was player, add to score
+            if shooter is base.player:
+                if shooter.team is self.team:
+                    base.player.score-=15
+                else:
+                    base.player.score+=15
+            #if player, end game
+            if self is base.player:
+                messenger.send('Leave-Game')
+            self.kill()
+
+    #procedure kill
+    # destroys object, but fancy-like
+    def kill(self):
+        self.pose('death',0)
+        taskMgr.add(self.deleteTask,'deleteTask')
+
+    #procedure deleteTask
+    #destroys object after five seconds of being in death state
+    def deleteTask(self,task):
+        if task.time<5.0:
+            return task.cont
+        else:
             self.delete()
+            return task.done
 
     #procedure class deconstructor
     def delete(self):
@@ -144,15 +173,17 @@ class entity(Actor):
         #also remove from base.entities
         if self in base.entities:
             base.entities.remove(self)
-        #destroy actor
-        self.hide()
-        self.cleanup()
-        #self.detachNode()
-        #remove pythontag from collision
+
+        # remove pythontag from collision
         self.mainCol.clearPythonTag("owner")
-        #remove collision node from global collider
+        # remove collision node from global collider
         base.cTrav.removeCollider(self.cNode)
-        del self
+        #destroy actor
+        if not self.is_empty():
+            self.hide()
+            self.cleanup()
+            #self.detachNode()
+            del self
 
     #class deconstructor
     def __del__(self):
@@ -193,6 +224,7 @@ class player(entity):
         self.setPlayer()
 
         self.health=600
+        self.damagedSound=None
 
         # initial loadout
         self.weapons=[]
@@ -389,10 +421,11 @@ class vehicle(player):
 
 class bullet():
     #tuple pos, tuple target, float damage, float speed, float range, float accuracy -> bullet
-    def __init__(self, pos, dir, damage, speed, range, accuracy=1):
+    def __init__(self, sender, pos, dir, damage, speed, range, accuracy=1):
         #bullets have a speed, a model, and a damage. Both should be parameters
         #range as well
         self.start=pos
+        self.sender=sender
         self.accuracy=accuracy
         self.direction=dir.normalized()
         self.damage=damage

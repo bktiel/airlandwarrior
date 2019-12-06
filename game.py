@@ -5,6 +5,7 @@ from direct.filter.CommonFilters import CommonFilters
 from direct.gui.OnscreenImage import OnscreenImage, TransparencyAttrib
 from direct.gui.DirectFrame import DirectFrame
 from direct.gui.OnscreenText import OnscreenText
+from direct.showbase.Audio3DManager import Audio3DManager
 from direct.showbase.ShowBase import ShowBase, Point3, WindowProperties, Vec3F, DirectionalLight, AmbientLight, \
     NodePath, PandaNode, LightRampAttrib, PointLight, Shader, SamplerState, CollisionHandlerEvent
 # all collision stuff
@@ -72,9 +73,12 @@ class mainGame(ShowBase):
         # load environment
         self.makeEnviron("example")
 
+        # sfx handler for 3D audio
+        #base.audio3d = Audio3DManager(base.sfxManagerList[0], base.camera)
         #background music
         self.music=base.loader.loadSfx("sounds/dramatic.ogg")
         self.music.setLoop(True)
+        self.music.setVolume(0.15)
         self.music.play()
 
         # load GUI
@@ -113,11 +117,7 @@ class mainGame(ShowBase):
                 thisFlag.setPythonTag('lastCapture',None) #last capture attempt
                 thisFlag.setPythonTag('lastCaptureTeam',None)   #last team that tried to cap
 
-        #spawn player
-        newPos=(self.team0Node.getX(),self.team0Node.getY(),self.team0BaseNode.getZ()+20)
-        self.player = player("models/m15", base, self.team0Node.getPos())
-        self.player.setScale(2)
-
+        self.spawnPlayer()
         #standing=rifleman(base,self.team0Node.getPos(),0)
         #running = rifleman(base, self.team0Node.getPos(), 0)
         #soldat = rifleman(base, self.team0Node.getPos(), 0)
@@ -126,17 +126,8 @@ class mainGame(ShowBase):
         #instance=soldat.instanceTo(instancee)
         #instancee.setX(instancee.getX()-180)
         #enemy = rifleman(base, (20, 300, 0),1)
-
-
         #friendly = rifleman(base, self.team0Node.getPos(), 0)
         #friendly.setGoal(self.flags[1])
-
-
-        locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
-        print((locationJoint.getParent()))
-
-        M1X_M2(self.player,locationJoint)
-
 
         #load gameplay logic
 
@@ -149,7 +140,21 @@ class mainGame(ShowBase):
         self.spawnBases()
         self.spawnEnemies()
 
+    #procedure spawnPlayer
+    # just logic for making player and putting on scene
+    def spawnPlayer(self):
+        #spawn player
+        newPos=(self.team0Node.getX(),self.team0Node.getY(),self.team0BaseNode.getZ()+20)
+        self.player = player("models/m15", base, self.team0Node.getPos())
+        #store on base for external use
+        base.player=self.player
+        self.player.setScale(2)
+        self.player.score=0
 
+        locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
+        print((locationJoint.getParent()))
+
+        M1X_M2(self.player,locationJoint)
 
     #procedure makeEnviron
     def makeEnviron(self, envModel):
@@ -234,7 +239,11 @@ class mainGame(ShowBase):
         reticle.reparentTo(self.playerGUI)
         self.playerGUI.HP= OnscreenText(text="HEALTH", pos=(0.95, 0.8),
                                        scale=0.2, fg=(0, 0, 90, 1), align=TextNode.ACenter, mayChange=1)
+
         self.playerGUI.HP.reparentTo(self.playerGUI)
+        self.playerGUI.score= OnscreenText(text="Score: 0", pos=(-1.5, 0.8),
+                                       scale=0.2, fg=(0, 0, 90, 1), align=TextNode.ALeft, mayChange=1)
+        self.playerGUI.score.reparentTo(self.playerGUI)
 
     #procedure updateEntities
     #task applies logic to all registered entities every frame
@@ -248,9 +257,11 @@ class mainGame(ShowBase):
             #call to overrideable updateState method
             item.updateState()
 
-        #update player HP
+        #update player UI
         if self.playerGUI.HP.text != str(self.player.health):
             self.playerGUI.HP.text=str(self.player.health)
+        if self.playerGUI.score.text != str(self.player.score):
+            self.playerGUI.score.text="Score: {}".format(str(self.player.score))
 
         #spawn entities
         if timeNow>=self.nextValidSpawn:
@@ -321,9 +332,9 @@ class mainGame(ShowBase):
             #find random point in this circle
             x, y = randomPointInCircle(self.outposts[flagTarget].getPos(), outer, inner)
             flagTarget = (x, y, 0)
-            dest = base.loader.loadModel("models/basic")
-            dest.setPos(flagTarget)
-            dest.reparentTo(base.render)
+            #dest = base.loader.loadModel("models/basic")
+            #dest.setPos(flagTarget)
+            #dest.reparentTo(base.render)
             unit.setGoal(flagTarget)
 
 
@@ -388,6 +399,7 @@ class mainGame(ShowBase):
         '''
         Cleanly deletes all objects created by this scene
         '''
+        self.music.stop()
         self.playerGUI.removeNode()
         #clear all lights
         base.render.clearLight()
@@ -410,6 +422,8 @@ class mainGame(ShowBase):
         base.entities.clear()
         # clear cleanup list
         base.cleanup.clear()
+        self.outposts.clear()
+        self.flags.clear()
         # last alibis
         base.render.getChildren().detach()
 
