@@ -63,12 +63,19 @@ class mainGame(ShowBase):
         base.cleanup=[]
         # entities is list of all entities in gamespace. Used for applying gravity etc
         base.entities=[]
+        # also keep a running list of all structures
+        base.structures=[]
 
         #setup for AI
         base.AIworld = AIWorld(base.render)
 
         # load environment
         self.makeEnviron("example")
+
+        #background music
+        self.music=base.loader.loadSfx("sounds/dramatic.ogg")
+        self.music.setLoop(True)
+        self.music.play()
 
         # load GUI
         self.makeGUI()
@@ -84,10 +91,20 @@ class mainGame(ShowBase):
         self.team1Node = self.environment.find("**/team1")
         self.team1BaseNode = self.environment.find("**/team1base")
 
+        #load occlusion nodes from environment
+        #format in blender:
+        #occlusion planes all parented to base level 'occluders' empty
+        #occlusion planes named 'occluder#'
+        occluder_nodes = self.environment.findAllMatches('**/occluders/+OccluderNode')
+        for occluder_nodepath in occluder_nodes:
+            base.render.setOccluder(occluder_nodepath)
+            occluder_nodepath.node().setDoubleSided(True)
+
         #for now will attempt to load up to 12 flags, and reject entries that don't work
         #TODO: dynamically load based on amount of flag nodes found
         #also may change capture time depending on flag
         self.flags=[]
+        self.outposts=[]
         for i in range (12):
             thisFlag=self.environment.find("**/flag"+str(i))
             #only append if found successfully
@@ -98,14 +115,21 @@ class mainGame(ShowBase):
 
         #spawn player
         newPos=(self.team0Node.getX(),self.team0Node.getY(),self.team0BaseNode.getZ()+20)
-        self.player = player("models/m15", base, newPos)
+        self.player = player("models/m15", base, self.team0Node.getPos())
         self.player.setScale(2)
-        #firingEnemy=rifleman(base,(15,500,0),1)
+
+        #standing=rifleman(base,self.team0Node.getPos(),0)
+        #running = rifleman(base, self.team0Node.getPos(), 0)
+        #soldat = rifleman(base, self.team0Node.getPos(), 0)
+        #instancee=base.render.attachNewNode('blast')
+        #instancee.setX(instancee.getX()+200)
+        #instance=soldat.instanceTo(instancee)
+        #instancee.setX(instancee.getX()-180)
         #enemy = rifleman(base, (20, 300, 0),1)
 
 
-        friendly = rifleman(base, self.team0Node.getPos(), 0)
-        friendly.setGoal(self.flags[1])
+        #friendly = rifleman(base, self.team0Node.getPos(), 0)
+        #friendly.setGoal(self.flags[1])
 
 
         locationJoint=self.player.exposeJoint(None, "modelRoot", "frontWeaponPod")
@@ -233,6 +257,9 @@ class mainGame(ShowBase):
             self.spawnEnemies()
 
 
+        #self.checkOutposts()
+
+
         return task.cont
 
 
@@ -247,22 +274,27 @@ class mainGame(ShowBase):
         baseNode.reparentTo(base.render)
         baseNode.setPos(self.team0BaseNode.getPos())
         baseNode.setScale(4.5)
+        #base.structures.append(baseNode)
 
         baseNode = base.loader.loadModel("models/hq")
         baseNode.reparentTo(base.render)
         baseNode.setPos(self.team1BaseNode.getPos())
         baseNode.setScale(4.5)
         baseNode.setH(self.team1BaseNode.getH())
+        #base.structures.append(baseNode)
 
         #spawn bases on flags
         for i,flag in enumerate(self.flags):
             newBase=base.loader.loadModel("models/outpost")
             newBase.reparentTo(base.render)
-            newBase.setScale(flag.getScale())
+            #newBase.setScale(flag.getScale())
             newBase.setPos(flag.getPos())
+            #store base in flags array
+            self.outposts.append(newBase)
+            base.structures.append(newBase)
 
             #set initial team of each flag
-            #flag[i].setPythonTag('team', None)
+            self.flags[i].setPythonTag('team', None)
 
     #procedure spawnEnemies
     def spawnEnemies(self):
@@ -272,15 +304,27 @@ class mainGame(ShowBase):
         timeNow = globalClock.getFrameTime()
         self.nextValidSpawn=timeNow+random.randint(4,11)
         #actually spawns entities for both sides from respective HQs
-        if len(base.entities)<24:
+        if len(base.entities)<12:
             #randomly choose which team to spawn more for
             team=random.randint(0,1)
+            unit=None
             if team == 0:
-                friendly = rifleman(base, self.team0Node.getPos(), 0)
-                friendly.setGoal(self.flags[random.randint(0,2)])
+                unit = rifleman(base, self.team0Node.getPos(), 0)
             else:
-                enemy = rifleman(base, self.team1Node.getPos(), 1)
-                enemy.setGoal(self.flags[random.randint(0,2)])
+                unit = rifleman(base, self.team1Node.getPos(), 1)
+            # set goal to random point around flag
+            flagTarget = random.randint(0, len(self.flags) - 1)
+            # find reasonable inner and outer radius
+            inner=self.outposts[flagTarget].getBounds().getRadius()/2
+            # outer is 1.2x the inner
+            outer = 1.1 * inner
+            #find random point in this circle
+            x, y = randomPointInCircle(self.outposts[flagTarget].getPos(), outer, inner)
+            flagTarget = (x, y, 0)
+            dest = base.loader.loadModel("models/basic")
+            dest.setPos(flagTarget)
+            dest.reparentTo(base.render)
+            unit.setGoal(flagTarget)
 
 
     #procedure checkOutposts
@@ -298,7 +342,7 @@ class mainGame(ShowBase):
             flagTeam=flag.getPythonTag('team')
             # check for base.entities and see if any are in the circle created by capture radius
             for troop in base.entities:
-                if pointInCircle(flag.getPos(),flag.capture_radius,troop.getPos()):
+                if pointInCircle(flag.getPos(),mission.CAPTURE_RADIUS,troop.getPos()):
                     if (lastTeam != None) and lastTeam !=troop.team:
                         #if multiple teams in zone all capture attempts aborted
                         isCapturing=False

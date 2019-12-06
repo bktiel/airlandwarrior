@@ -25,12 +25,12 @@ class M1X_M2(weapon):
             'currentMag':5
         }
         # audio
-        self.firingNoise=''
+        self.firingNoise=base.loader.loadSfx("sounds/m2.ogg")
         self.reloadNoise=''
         # time to reload
         self.reloadTime=0
         # time that must pass between shots
-        self.fireRate=0.1
+        self.fireRate=0.15
         self.lastFired=0
         # boolean whether an instance is reloading - cannot fire if so
         self.isReloading=False
@@ -81,6 +81,7 @@ class M1X_M2(weapon):
             480,
             400
         )
+        self.firingNoise.play()
         #record in lastFired
         self.lastFired=timeNow
 
@@ -98,6 +99,7 @@ class carbine(weapon):
     def __init__(self, owner, joint):
         self.owner=owner
         self.lastFired=0
+        self.firingNoise = base.loader.loadSfx("sounds/carbine.ogg")
         # time that must pass between shots
         self.fireRate=0.15
         self.ammo={
@@ -138,7 +140,9 @@ class carbine(weapon):
 
         #targetVector = base.render.getRelativeVector(self.owner.target, Vec3(0, 1, 0))
         startPos=base.render.getRelativePoint(self.model,Vec3(0,self.length,-self.height/2))
-        targetVector=(self.owner.target.getPos() - startPos)
+        #account for target height - shoot at center mass
+        targetVector=self.owner.target.getPos()+Vec3(0,0,self.owner.target.height/2)
+        targetVector=(targetVector- startPos)
         targetVector.normalize()
 
         #create projectile at set offset in front of weapon
@@ -149,6 +153,8 @@ class carbine(weapon):
             480,
             400
         )
+        #play firing noise
+        self.firingNoise.play()
         #record in lastFired
         self.lastFired=timeNow
         #decrement ammo

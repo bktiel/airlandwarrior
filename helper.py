@@ -2,6 +2,8 @@ import math
 
 
 #function: rotateVector
+import random
+
 from panda3d.core import WindowProperties, Quat, Vec3
 
 from templates import entity
@@ -161,4 +163,18 @@ def HPRtoVector(hpr):
     Z = 0
     return X,Y,Z
 
+#function: randomPointInCircle
+#find a random point within a circle created from passed args
+#arg origin presumed to be of type tuple or vector ([0] is x, [1] is y)
+#tuple,float,float->tuple
+def randomPointInCircle(origin,outerRadius,innerRadius=0):
+    #get random radius that is between two radius definitions
+    radius=random.randrange(int(innerRadius),int(outerRadius))
+    #get random point around circle
+    #inner degrees can be up to 360
+    angle=random.randrange(0,360)
+    #get x,y
+    x=radius*math.cos(angle)+origin[0]
+    y=radius*math.sin(angle)+origin[1]
+    return x,y
 global base

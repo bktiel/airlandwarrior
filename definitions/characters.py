@@ -1,7 +1,7 @@
 from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.ai import AICharacter
 from panda3d.core import CollisionSphere, CollisionNode, CollisionHandlerQueue, CollisionRay, CollisionCapsule, \
-    CollisionBox, CollideMask
+    CollisionBox, CollideMask, LVector3f
 
 from helper import pointInCircle, vectorToHPR
 from templates import entity,player,vehicle
@@ -22,8 +22,8 @@ class rifleman(entity):
         if team==0:
             self.model = "models/friend_rifleman"
         elif team==1:
-            self.model="models/rifleman"
-        self.viewRange=200  #used by application to determine what character can 'see'
+            self.model="models/enemy_rifleman"
+        self.viewRange=400  #used by application to determine what character can 'see'
         self.contacts=[]    #stores nearby objects
         self.target=None    #stores target
         self.goal=None      #stores movement goal (if any)
@@ -42,6 +42,11 @@ class rifleman(entity):
         self.AiBehaviors=self.ai.getAiBehaviors()
         #load navmesh
         self.AiBehaviors.initPathFind(base.navmesh)
+        #add all structures
+        for building in base.structures:
+            #this is super aggressive so disable for now..
+            #self.AiBehaviors.addStaticObstacle(building)
+            pass
 
     #procedure: updateState
     #overrides entity.updateState
@@ -55,7 +60,9 @@ class rifleman(entity):
         #    and (victim.parent != self.radar.parent)\
         #    and (victimParent != None):
         #        print(entry)
+
         entity.updateState(self)
+        timeNow = globalClock.getFrameTime()
         #rifleman should always stand upright.
         self.setP(0)
         #clear current contacts to get new ones
@@ -86,12 +93,16 @@ class rifleman(entity):
             #target this object
             self.target=self.contacts[0]
             #little bit of vector math, get vector to target, normalize and convert to rotation
-            newVec=self.target.getPos()-self.getPos()
+            newVec=self.getPos()-self.target.getPos()
             newVec.normalize()
             newVec=vectorToHPR(newVec)
             #now if currentHPR doesn't match add H until it does
             self.setH(newVec[0])
             self.attack()
+        elif self.weapon.isReloading != False:
+            if timeNow >= self.weapon.isReloading:
+                self.weapon.isReloading = False
+                self.weapon.ammo['currentMag'] = self.weapon.ammo['magSize']
         elif self.goal is not None:
             self.setGoal(self.goal)
         elif self.goal is None:
@@ -99,13 +110,14 @@ class rifleman(entity):
             self.pose("highReady", 0)
 
         #handle movement if there is a goal and not shooting anyone
-        if self.goal is not None and self.target is None:
+        if self.goal is not None and self.target is None and self.weapon.isReloading is False:
             self.move()
 
     #procedure rifleman.attack
     #act of rifleman shooting. While shooting, can't do anything else
     def attack(self):
         self.weapon.fire()
+        #this is False because isReloading stores the start time of the reload
         if self.weapon.isReloading != False:
             if self.getCurrentAnim() != "reload":
                 self.play("reload")
@@ -123,14 +135,15 @@ class rifleman(entity):
     #procedure move
     #if en route to a location, play walking animation
     def move(self):
+        #set position every move
+        self.set_prev_transform(self.getTransform(base.render))
         #if completed set to none, reset animations
         if self.AiBehaviors.behaviorStatus("pathfollow") == "done":
             self.goal=None
             self.pose("highReady", 0)
             return
         dt = globalClock.getDt()
-        #need to rotate player by 180 degs to make work
-        self.setH((self.getH()+180)%180)
+
         if self.getCurrentAnim() != "walk":
             self.loop("walk")
 
