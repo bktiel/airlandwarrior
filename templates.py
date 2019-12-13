@@ -49,6 +49,8 @@ class entity(Actor):
         self.setPos(pos)
         # store dimensions for later
         # https://discourse.panda3d.org/t/getting-the-height-width-and-length-of-models-solved/6504
+        # Post describes the output of the Nodepath class's getTightBounds() method. Using this
+        # I am able to get an approximation of the dimensions of an object in the global coordinate space
         minimum, maximum = self.getTightBounds()
         # make sure all numbers are positive for best (any) results
         self.bounds = [abs(num) for num in (minimum - maximum)]
@@ -95,6 +97,8 @@ class entity(Actor):
 
         #store reference to self
         #https://discourse.panda3d.org/t/inheriting-from-nodepath/10886/4
+        #post describes how to set up a reference from nodepath to itself to retrieve custom properties
+        #I use python tags to distinguish collision volume owners
         self.mainCol.setPythonTag("owner",self)
 
         # TODO if no initial collision, enforce gravity until collision
@@ -373,18 +377,6 @@ class player(entity):
         if self.traversalLimits[0] < self.head.getP() - dy * 60 < self.traversalLimits[1]:
             self.head.setP(self.head.getP() - dy * 60)
 
-        #update camera to keep up
-        #test - vertical shaking while moving
-        #self.camera.setPos(-2, 30, self.height*1.05)
-        #project vector from model and put camera there
-        #camOffset=(0, -30,self.height)
-        #rotate vector
-        #first need to get angle (getH is cumulative degrees, not ideal for rotation)
-        #playerAngle = (360-self.getH())%360
-        #now rotate
-        #self.camera.setPos(player.getPos()+rotateVector(camOffset,playerAngle))
-        #self.camera.lookAt(self.getX(), self.getY(), self.getZ() + self.height / 2)
-
     # procedure player.shoot
     def shoot(self):
         '''
@@ -393,23 +385,9 @@ class player(entity):
         #fire selected weapon
         self.selectedWeapon.fire()
 
-        #https://discourse.panda3d.org/t/calculating-forward-vector-from-hpr/6261/2
-        #targetVector=base.render.getRelativeVector(self.headgun,Vec3(0,1,0))
-
-        #bullet(
-        #    base.render.getRelativePoint(self.headgun,Vec3(0,2,0)),
-        #    targetVector,
-        #    3,
-        #    480,
-        #    400
-        #)
-
-
-
     #class deconstructor
     def __del__(self):
         pass
-        #self.removeEpstein()
 
 
 

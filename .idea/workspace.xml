@@ -3,9 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ff554fde-8aa3-4eb0-9e69-f0e7e13d051f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/definitions/characters.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/characters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/definitions/weapons.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/weapons.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/example.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/example.egg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/templates.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -236,7 +236,7 @@
       <workItem from="1575617569015" duration="6244000" />
       <workItem from="1575667986826" duration="3163000" />
       <workItem from="1575985034964" duration="30000" />
-      <workItem from="1576246363069" duration="6847000" />
+      <workItem from="1576246363069" duration="7602000" />
     </task>
     <servers />
   </component>
@@ -281,17 +281,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/templates.py</url>
-          <line>161</line>
+          <line>165</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/templates.py</url>
-          <line>138</line>
+          <line>142</line>
           <option name="timeStamp" value="50" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/helper.py</url>
-          <line>98</line>
+          <line>100</line>
           <option name="timeStamp" value="59" />
         </line-breakpoint>
       </breakpoints>
@@ -322,6 +322,6 @@
     <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575649406969" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$sample_anim.coverage" NAME="sample_anim Coverage Results" MODIFIED="1575578369763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../p3d_gpu_anim/" />
     <SUITE FILE_PATH="coverage/Panda1$occluder_culling.coverage" NAME="occluder_culling Coverage Results" MODIFIED="1575567456687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1576269410875" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1576270461104" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -14,6 +14,8 @@ def rotateVector(vector,angle):
 
     '''
     #https://stackoverflow.com/questions/14607640/rotating-a-vector-in-3d-space
+    #Post describes how to rotate a vector in 3D space
+    #I don't actually use this, see VectorToHPR and HPRtoVector. I ended up doing my own vector math.
     newX= vector[0] * math.cos(angle) - vector[1] * math.sin(angle)
     newY= vector[0] * math.sin(angle) - vector[1] * math.cos(angle)
     return newX,newY,vector[2]
@@ -127,6 +129,8 @@ def entityCollided(entry):
     #victim=victim.getPythonTag("owner")
 
 #https://stackoverflow.com/a/481153
+#Post provides code for determining whether a point is inside a given circle
+#I use this in the pointInCircle function, which is used by AI target acquisition and pathfinding
 #function: pointInCircle
 #Tuple,Float,Tuple->Boolean
 def pointInCircle(circlePos,circleRadius,point):
@@ -140,6 +144,8 @@ def pointInCircle(circlePos,circleRadius,point):
     return square_dist <= circleRadius ** 2
 
 #https://discourse.panda3d.org/t/convert-vector-to-hpr/2118/5
+#Post provides a method to convert a vector to Panda's weird Heading Pitch Rotation format
+#This is used in the vectorToHPR function that is used throughout the application
 #function: vectorToHPR()
 def vectorToHPR(vector):
     '''
@@ -152,6 +158,8 @@ def vectorToHPR(vector):
     return H, P, R
 
 #https://discourse.panda3d.org/t/points-and-vectors/1782/6
+#Post provides a method for getting the rotation of an object and converting it to a vector
+#This is used for the HPRtoVector function used multiple times throughout the application
 #function: HPRtoVector
 def HPRtoVector(hpr):
     #q1 = Quat()

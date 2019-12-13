@@ -71,6 +71,10 @@ class M1X_M2(weapon):
 
         #start pos should always be self.length from pos. Will experiment with
         # https://discourse.panda3d.org/t/calculating-forward-vector-from-hpr/6261/2
+        # Post describes how to get the forward vector from Panda's HPR format, particularly
+        # in the context of a parent coordinate space rather than local.
+        # This was critical to getting a vector that bullets should follow that approximates the
+        # direction of the weapon, see line 78.
         startPos=base.render.getRelativePoint(self.model,Vec3(0,-self.length,-self.height/2))
 
         #create projectile at set offset in front of weapon
