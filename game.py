@@ -13,7 +13,7 @@ from panda3d.ai import AIWorld, AICharacter
 from panda3d.core import CollisionTraverser, CollisionNode, CollisionHandlerQueue, \
     CollisionRay, CollideMask, CollisionSphere, CollisionHandlerPusher, TextNode
 #custom classes
-from templates import player
+from templates import player, structure
 from definitions.weapons import *
 from definitions.characters import *
 from helper import *
@@ -296,14 +296,13 @@ class mainGame(ShowBase):
 
         #spawn bases on flags
         for i,flag in enumerate(self.flags):
-            newBase=base.loader.loadModel("models/outpost")
-            newBase.reparentTo(base.render)
+            newBase=structure("models/outpost",flag.getPos())
+            #newBase.reparentTo(base.render)
             #newBase.setScale(flag.getScale())
-            newBase.setPos(flag.getPos())
+            #newBase.setPos(flag.getPos())
             #store base in flags array
             self.outposts.append(newBase)
             base.structures.append(newBase)
-
             #set initial team of each flag
             self.flags[i].setPythonTag('team', None)
 
@@ -321,8 +320,12 @@ class mainGame(ShowBase):
             unit=None
             if team == 0:
                 unit = rifleman(base, self.team0Node.getPos(), 0)
+                #for now just send units to the other base
+                unit.setGoal(self.team1Node.getPos())
             else:
                 unit = rifleman(base, self.team1Node.getPos(), 1)
+                #for now just send units to the other base
+                unit.setGoal(self.team0Node.getPos())
             # set goal to random point around flag
             flagTarget = random.randint(0, len(self.flags) - 1)
             # find reasonable inner and outer radius
@@ -335,7 +338,7 @@ class mainGame(ShowBase):
             #dest = base.loader.loadModel("models/basic")
             #dest.setPos(flagTarget)
             #dest.reparentTo(base.render)
-            unit.setGoal(flagTarget)
+            ##unit.setGoal(flagTarget)
 
 
     #procedure checkOutposts

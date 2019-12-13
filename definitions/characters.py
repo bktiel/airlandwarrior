@@ -45,8 +45,8 @@ class rifleman(entity):
         #add all structures
         for building in base.structures:
             #this is super aggressive so disable for now..
-            #self.AiBehaviors.addStaticObstacle(building)
-            pass
+            self.AiBehaviors.addStaticObstacle(building)
+            #pass
 
     #procedure: updateState
     #overrides entity.updateState

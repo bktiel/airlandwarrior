@@ -1,6 +1,6 @@
 #definitions for actors
 from direct.showbase.MessengerGlobal import messenger
-from direct.showbase.ShowBase import ShowBase, CollisionHandlerEvent, LVector3f, Vec3, NodePath
+from direct.showbase.ShowBase import ShowBase, CollisionHandlerEvent, LVector3f, Vec3, NodePath, CollisionBox
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.actor.Actor import Actor
 from direct.task.TaskManagerGlobal import taskMgr
@@ -21,7 +21,7 @@ class entity(Actor):
     '''
     #procedure class constructor
     # NodePath model, ShowBase caller, tuple Pos -> class construction
-    def __init__(self, model: str, base: ShowBase, pos: tuple) -> None:
+    def __init__(self, model: str, base: ShowBase, pos: tuple, physics=True):
         '''
         constructor for entity. attaches model to calling instance renderer
         also stores size definitions and creates basic collision object
@@ -58,31 +58,32 @@ class entity(Actor):
         # COLLISION PROPERTIES
         # create collision ray that is height of model pointing down (will detect ground collisions)
 
-        self.groundRay = CollisionRay()
-        self.groundRay.setOrigin(0,0,1000)
-        self.groundRay.setDirection(0,0,-1)
-        self.groundCol = CollisionNode('groundRay')
-        self.groundCol.addSolid(self.groundRay)
-        self.groundCol.setFromCollideMask(BitMask32.bit(0))
-        self.groundCol.setIntoCollideMask(BitMask32.allOff())
-        self.groundColNode = self.attachNewNode(self.groundCol)
-        base.cTrav.addCollider(self.groundColNode, base.groundHandler)
+        if physics:
+            self.groundRay = CollisionRay()
+            self.groundRay.setOrigin(0,0,1000)
+            self.groundRay.setDirection(0,0,-1)
+            self.groundCol = CollisionNode('groundRay')
+            self.groundCol.addSolid(self.groundRay)
+            self.groundCol.setFromCollideMask(BitMask32.bit(0))
+            self.groundCol.setIntoCollideMask(BitMask32.allOff())
+            self.groundColNode = self.attachNewNode(self.groundCol)
+            base.cTrav.addCollider(self.groundColNode, base.groundHandler)
 
-        #and another one for everything else
-        self.mainCol = CollisionNode('actorCollision' + str(id(self)))
-        # create collision sphere as solid for this collision node
-        self.mainCol.addSolid(CollisionSphere(0, 0, self.height / 2, self.height / 2))
-        # specify valid collisions for collision node
-        self.mainCol.setFromCollideMask(CollideMask.bit(0))
-        self.mainCol.setIntoCollideMask(CollideMask.bit(1)) # accepts incoming objects with collideMask bit(1)
-        # attach collision node to actor
-        self.cNode = self.attachNewNode(self.mainCol)
-        # show
-        #self.cNode.show()
-        # make instance collision traverser aware of this collision node, tell it how to handle (with pusher)
-        base.cTrav.addCollider(self.cNode, base.pusher)
-        # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
-        base.pusher.addCollider(self.cNode, self, base.drive.node())
+            #and another one for everything else
+            self.mainCol = CollisionNode('actorCollision' + str(id(self)))
+            # create collision sphere as solid for this collision node
+            self.mainCol.addSolid(CollisionSphere(0, 0, self.height / 2, self.height / 2))
+            # specify valid collisions for collision node
+            self.mainCol.setFromCollideMask(CollideMask.bit(0))
+            self.mainCol.setIntoCollideMask(CollideMask.bit(1)) # accepts incoming objects with collideMask bit(1)
+            # attach collision node to actor
+            self.cNode = self.attachNewNode(self.mainCol)
+            # show
+            #self.cNode.show()
+            # make instance collision traverser aware of this collision node, tell it how to handle (with pusher)
+            base.cTrav.addCollider(self.cNode, base.pusher)
+            # add collision to pusher collision handler; tell pusher which node to associate with which actor IOT push
+            base.pusher.addCollider(self.cNode, self, base.drive.node())
 
         # add to base.entities (since all allies/enemies created through this constructor, makes sense
         base.entities.append(self)
@@ -565,5 +566,33 @@ class weapon():
         '''
         pass
 
+class structure(Actor):
+    '''
+    class for all buildings in the scenario
+    stores health, team.
+    other classes may inherit from structure to provide specific functionality
+    unlike entities, collision should be implicit to the model (defined with tags)
+    '''
 
+    #class constructor
+    def __init__(self,model,location,hp=50,team=3):
+        Actor.__init__(self)
+        #load model into world with specified health at location
+        self.loadModel(model)
+        self.renderer = base.render
+        self.reparentTo(self.renderer)
+        self.setPos(location)
+
+        #collision stuff for bullets
+        minimum, maximum = self.getTightBounds()
+        # make sure all numbers are positive for best (any) results
+        self.bounds = [abs(num) for num in (minimum - maximum)]
+        self.width, self.length, self.height = self.bounds[0], self.bounds[1], self.bounds[2]
+
+
+
+
+        #now specify health and team
+        self.team=team
+        self.health=hp
 

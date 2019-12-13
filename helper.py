@@ -6,8 +6,7 @@ import random
 
 from panda3d.core import WindowProperties, Quat, Vec3
 
-from templates import entity
-
+from templates import entity, structure
 
 
 def rotateVector(vector,angle):
@@ -101,6 +100,8 @@ def bulletCollided(entry):
         #if it is of type entity or inherited cause damage
         if isinstance(victim,entity):
             victim.addDamage(bullet.sender,bullet.damage)
+        elif isinstance(victim,structure):
+            print('structure!')
         #then destroy
         bullet.delete()
 

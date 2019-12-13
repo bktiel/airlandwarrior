@@ -4,27 +4,8 @@
     <list default="true" id="ff554fde-8aa3-4eb0-9e69-f0e7e13d051f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/definitions/characters.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/characters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/definitions/weapons.py" beforeDir="false" afterPath="$PROJECT_DIR$/definitions/weapons.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/game.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/enemy_rifleman.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/enemy_rifleman.egg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/friend_rifleman.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/friend_rifleman.egg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/gun.egg" beforeDir="false" afterPath="$PROJECT_DIR$/models/gun.egg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/panda-model.egg.pz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-attention.001.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-attention.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-firing.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-highReady.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-reload.001.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-reload.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-walk.001.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman-walk.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/rifleman.egg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rifleman_anim.pfm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket_anim.pfm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sounds/carbine.ogg" beforeDir="false" afterPath="$PROJECT_DIR$/sounds/carbine.ogg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sounds/m2.ogg" beforeDir="false" afterPath="$PROJECT_DIR$/sounds/m2.ogg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates.py" beforeDir="false" afterPath="$PROJECT_DIR$/templates.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -253,6 +234,9 @@
       <workItem from="1575494584909" duration="14973000" />
       <workItem from="1575589956758" duration="20238000" />
       <workItem from="1575617569015" duration="6244000" />
+      <workItem from="1575667986826" duration="3163000" />
+      <workItem from="1575985034964" duration="30000" />
+      <workItem from="1576246363069" duration="6847000" />
     </task>
     <servers />
   </component>
@@ -297,13 +281,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/templates.py</url>
-          <line>160</line>
+          <line>161</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/templates.py</url>
-          <line>137</line>
+          <line>138</line>
           <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/helper.py</url>
+          <line>98</line>
+          <option name="timeStamp" value="59" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -322,16 +311,17 @@
         <watch expression="jt.name" language="Python" />
         <watch expression="joint.get_name()" />
         <watch expression="self.joint_names" />
+        <watch expression="self.getChildren()" language="Python" />
         <watch expression="anim" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Panda1$occluder_culling.coverage" NAME="occluder_culling Coverage Results" MODIFIED="1575567456687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$model_process.coverage" NAME="model_process Coverage Results" MODIFIED="1575602891058" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../p3d_gpu_anim/" />
+    <SUITE FILE_PATH="coverage/Panda1$game.coverage" NAME="game Coverage Results" MODIFIED="1574027271933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$main.coverage" NAME="main Coverage Results" MODIFIED="1575649406969" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Panda1$sample_anim.coverage" NAME="sample_anim Coverage Results" MODIFIED="1575578369763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../p3d_gpu_anim/" />
-    <SUITE FILE_PATH="coverage/Panda1$game.coverage" NAME="game Coverage Results" MODIFIED="1574027271933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1575494294861" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Panda1$occluder_culling.coverage" NAME="occluder_culling Coverage Results" MODIFIED="1575567456687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/airlandwarrior$main.coverage" NAME="main Coverage Results" MODIFIED="1576269410875" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
